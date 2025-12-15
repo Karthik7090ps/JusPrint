@@ -25,7 +25,7 @@ export const AppHeader = ({
     walletBalance = 450,
 }: AppHeaderProps) => {
     const theme = useTheme();
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     return (
         <View style={styles.container}>
@@ -63,12 +63,20 @@ export const AppHeader = ({
             </View>
 
             {showWallet && (
-                <TouchableOpacity style={styles.walletBadge}>
-                    <Icon name="wallet" size={18} color={theme.colors.primary} />
-                    <Text style={[styles.walletText, { color: theme.colors.primary }]}>
-                        ₹{walletBalance}
-                    </Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <TouchableOpacity style={styles.walletBadge} onPress={() => navigation.navigate('Wallet')}>
+                        <Icon name="wallet" size={18} color={theme.colors.primary} />
+                        <Text style={[styles.walletText, { color: theme.colors.primary }]}>
+                            ₹{walletBalance}
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.profileBtn}
+                        onPress={() => navigation.navigate('Settings')}
+                    >
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>JD</Text>
+                    </TouchableOpacity>
+                </View>
             )}
         </View>
     );
@@ -124,5 +132,20 @@ const styles = StyleSheet.create({
     walletText: {
         fontWeight: 'bold',
         fontSize: 14,
+    },
+    profileBtn: {
+        width: 36,
+        height: 36,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#9B59B6', // Purple for profile
+        borderRadius: 18,
+        borderWidth: 2,
+        borderColor: 'white',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
     },
 });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
-import { Text, Button, Card, useTheme, SegmentedButtons, Chip, Switch, Divider } from 'react-native-paper';
+import { Text, Button, Card, useTheme, SegmentedButtons, Chip, Switch, Divider, Snackbar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AppHeader } from '../../components/common/AppHeader';
 import { pick } from '@react-native-documents/picker';
@@ -20,10 +20,14 @@ const fetchPricingFromBackend = async (settings: any) => {
 export const DocumentUpload = ({ navigation, route }: { navigation: any; route?: any }) => {
     const theme = useTheme();
     const existingDoc = route?.params?.document;
+    const presetSettings = route?.params?.presetSettings;
+    const initialPrinter = route?.params?.printer;
 
     const [document, setDocument] = useState<any>(existingDoc || null);
+    const [selectedPrinter, setSelectedPrinter] = useState<any>(initialPrinter || null);
     const [activeTab, setActiveTab] = useState('basic');
     const [pricing, setPricing] = useState({ perPage: 2, total: 0, currency: '₹' });
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [settings, setSettings] = useState({
         copies: 1,
@@ -32,8 +36,23 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         orientation: 'portrait', // portrait | landscape
         pageSize: 'A4',
         pagesPerSheet: 1, // 1 | 2 | 4
-        totalPages: existingDoc?.pages || 10,
+        totalPages: existingDoc?.pages || 10, // Default to 10 if new doc
+        ...presetSettings
     });
+
+    // Auto-open picker if no document provided
+    useEffect(() => {
+        if (!existingDoc && !document) {
+            handlePickDocument();
+        }
+    }, []);
+
+    // Update printer if returned from selection
+    useEffect(() => {
+        if (route.params?.selectedPrinter) {
+            setSelectedPrinter(route.params.selectedPrinter);
+        }
+    }, [route.params?.selectedPrinter]);
 
     useEffect(() => {
         updatePricing();
@@ -52,26 +71,54 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         try {
             const [result] = await pick({ mode: 'open' });
             if (result) {
+                console.log('Picked file:', result);
                 setDocument({
                     name: result.name || 'Document',
                     uri: result.uri,
                     type: result.type,
-                    pages: 10, // Would be detected from actual document
+                    pages: 10, // In real app, we parse PDF to get page count
                 });
                 updateSetting('totalPages', 10);
             }
-        } catch (e) {
-            console.log('Cancelled');
+        } catch (e: any) {
+            if (e?.code === 'DOCUMENT_PICKER_CANCELED') {
+                console.log('User cancelled picker');
+            } else {
+                console.error('Picker Error:', e);
+                setErrorMsg('Failed to pick document. Please try again.');
+            }
         }
     };
 
     const handleProceed = () => {
-        navigation.navigate('PaymentScreen', { document, settings, pricing });
+        navigation.navigate('PaymentScreen', { document, settings, pricing, printer: selectedPrinter });
     };
 
     return (
         <View style={styles.container}>
             <AppHeader showLogo={false} title="Document Preview" showBack={true} showWallet={false} />
+
+            {/* Printer Selection Bar */}
+            <TouchableOpacity
+                style={styles.printerBar}
+                onPress={() => navigation.navigate('PrinterSelection', { returnRoute: 'DocumentUpload' })}
+            >
+                <View style={styles.printerInfo}>
+                    <View style={[styles.printerIcon, { backgroundColor: theme.colors.primary + '15' }]}>
+                        <Icon name="printer" size={20} color={theme.colors.primary} />
+                    </View>
+                    <View>
+                        <Text variant="labelSmall" style={{ color: '#666' }}>Printing to</Text>
+                        <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#1A1A2E' }}>
+                            {selectedPrinter?.location || 'Select Printer'}
+                        </Text>
+                    </View>
+                </View>
+                <View style={styles.changeBtn}>
+                    <Text style={{ color: theme.colors.primary, fontSize: 11, fontWeight: 'bold' }}>CHANGE</Text>
+                    <Icon name="chevron-right" size={16} color={theme.colors.primary} />
+                </View>
+            </TouchableOpacity>
 
             <View style={styles.content}>
                 {/* Document Preview - Top Section */}
@@ -84,7 +131,7 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                 settings.orientation === 'landscape' && styles.previewLandscape
                             ]}>
                                 <Icon name="file-pdf-box" size={40} color="#E74C3C" />
-                                <Text variant="bodySmall" style={{ marginTop: 8 }}>{document.name}</Text>
+                                <Text variant="bodySmall" style={{ marginTop: 8 }} numberOfLines={1}>{document.name}</Text>
                                 <View style={styles.settingsBadges}>
                                     <Chip compact textStyle={{ fontSize: 9 }}>{settings.colorMode.toUpperCase()}</Chip>
                                     <Chip compact textStyle={{ fontSize: 9 }}>{settings.sides === 'double' ? '2-sided' : '1-sided'}</Chip>
@@ -97,6 +144,15 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                     {pricing.currency}{pricing.total}
                                 </Text>
                             </View>
+                            {/* Change File Button */}
+                            <Button
+                                compact
+                                mode="text"
+                                onPress={handlePickDocument}
+                                style={{ marginTop: 8 }}
+                            >
+                                Change Document
+                            </Button>
                         </View>
                     ) : (
                         <TouchableOpacity style={styles.uploadBox} onPress={handlePickDocument}>
@@ -253,6 +309,14 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                     </Button>
                 </View>
             )}
+
+            <Snackbar
+                visible={!!errorMsg}
+                onDismiss={() => setErrorMsg(null)}
+                action={{ label: 'Dismiss', onPress: () => setErrorMsg(null) }}
+            >
+                {errorMsg}
+            </Snackbar>
         </View>
     );
 };
@@ -353,5 +417,36 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderTopWidth: 1,
         borderTopColor: '#E0E0E0',
+    },
+    printerBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    printerInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    printerIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    changeBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F5F5',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 16,
+        gap: 2,
     },
 });

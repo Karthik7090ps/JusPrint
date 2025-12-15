@@ -11,6 +11,7 @@ import { PCBOrderScreen } from '../screens/services/PCBOrderScreen';
 import { Print3DScreen } from '../screens/services/Print3DScreen';
 import { ComponentsStore } from '../screens/services/ComponentsStore';
 import { ProductDetails } from '../screens/marketplace/ProductDetails';
+import { SettingsScreen } from '../screens/profile/SettingsScreen';
 
 import { SplashScreen } from '../screens/SplashScreen';
 
@@ -22,7 +23,7 @@ export const AppNavigator = () => {
             <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Splash" component={SplashScreen} />
                 <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-                <Stack.Screen name="DocumentUpload" component={DocumentUpload} options={{ headerShown: true, title: 'Upload Document' }} />
+                <Stack.Screen name="DocumentUpload" component={DocumentUpload} options={{ headerShown: false }} />
                 <Stack.Screen name="PrinterSelection" component={PrinterSelection} options={{ headerShown: true, title: 'Select Printer' }} />
                 <Stack.Screen name="PaymentScreen" component={PaymentScreen} options={{ headerShown: true, title: 'Payment' }} />
                 <Stack.Screen name="JobStatus" component={JobStatus} options={{ headerShown: true, title: 'Tracking' }} />
@@ -30,7 +31,9 @@ export const AppNavigator = () => {
                 <Stack.Screen name="PCBOrder" component={PCBOrderScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Print3D" component={Print3DScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="ComponentsStore" component={ComponentsStore} options={{ headerShown: false }} />
+
                 <Stack.Screen name="ProductDetails" component={ProductDetails} options={{ headerShown: false }} />
+                <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     );

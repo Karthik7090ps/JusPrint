@@ -9,6 +9,9 @@ import { CommunityHub } from '../screens/community/CommunityHub';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from 'react-native-paper';
 
+import { CustomTabBarButton } from '../components/common/CustomTabBarButton';
+import { View } from 'react-native';
+
 const Tab = createBottomTabNavigator();
 
 export const MainTabNavigator = () => {
@@ -16,6 +19,7 @@ export const MainTabNavigator = () => {
 
     return (
         <Tab.Navigator
+            initialRouteName="Print"
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
@@ -27,17 +31,11 @@ export const MainTabNavigator = () => {
                 },
                 tabBarActiveTintColor: theme.colors.primary,
                 tabBarInactiveTintColor: theme.colors.secondary,
-                tabBarLabelStyle: { fontWeight: '600', fontSize: 11 },
+                tabBarLabelStyle: { fontWeight: '600', fontSize: 11, marginBottom: 4 },
+                tabBarItemStyle: { paddingTop: 4 },
             }}
         >
-            <Tab.Screen
-                name="Print"
-                component={PrintDashboard}
-                options={{
-                    tabBarIcon: ({ color, size }) => <Icon name="printer" size={size} color={color} />,
-                    tabBarLabel: 'Print'
-                }}
-            />
+
             <Tab.Screen
                 name="Projects"
                 component={ProjectsDashboard}
@@ -54,6 +52,22 @@ export const MainTabNavigator = () => {
                     tabBarLabel: 'Services'
                 }}
             />
+
+            {/* Center Print Action */}
+            <Tab.Screen
+                name="Print"
+                component={PrintDashboard}
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <View style={{ alignItems: 'center', justifyContent: 'center', top: 0 }}>
+                            <Icon name="printer" size={28} color="white" />
+                        </View>
+                    ),
+                    tabBarButton: (props) => <CustomTabBarButton {...props} />,
+                    tabBarLabel: () => null, // Hide label for center button
+                }}
+            />
+
             <Tab.Screen
                 name="Market"
                 component={MarketplaceHome}
@@ -70,6 +84,7 @@ export const MainTabNavigator = () => {
                     tabBarLabel: 'Community'
                 }}
             />
-        </Tab.Navigator>
+
+        </Tab.Navigator >
     );
 };
