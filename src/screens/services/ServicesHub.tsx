@@ -42,7 +42,7 @@ export const ServicesHub = ({ navigation }: { navigation: any }) => {
             <AppHeader title="Services" subtitle="Fab Lab & Manufacturing" />
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
                 <Text variant="headlineMedium" style={styles.header}>Fab Lab Services</Text>
-                <Text variant="bodyLarge" style={styles.subHeader}>Professional manufacturing for students.</Text>
+                <Text variant="bodyLarge" style={styles.subHeader}>Professional manufacturing for you.</Text>
 
                 {SERVICES.map(service => (
                     <Card key={service.id} style={styles.serviceCard} mode="elevated">

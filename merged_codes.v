@@ -121,12 +121,6 @@ content:
 path: App.tsx
 name of the file: App.tsx
 content:
-import { NativeModules } from 'react-native';
-
-setTimeout(() => {
-  console.log('NATIVE MODULES:', Object.keys(NativeModules));
-}, 1000);
-
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -136,7 +130,6 @@ import { theme } from './src/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
 
 function App(): React.JSX.Element {
   return (
@@ -161,7 +154,7 @@ name of the file: babel.config.js
 content:
 module.exports = {
   presets: ['module:@react-native/babel-preset'],
-  plugins: [],
+  plugins: ['react-native-reanimated/plugin'],
 };
 
 --------------------------------------------------------------------------------
@@ -283,6 +276,234 @@ if __name__ == '__main__':
 
 --------------------------------------------------------------------------------
 
+path: debug_log.txt
+name of the file: debug_log.txt
+content:
+﻿
+> W/InputDispatcher(  745): channel 'f18ba0a 
+com.jusprint/com.jusprint.MainActivity' ~ Consumer closed input 
+channel or an error occurred.  events=0x9
+  E/InputDispatcher(  745): channel 'f18ba0a 
+com.jusprint/com.jusprint.MainActivity' ~ Channel is 
+unrecoverably broken and will be disposed!
+  I/WindowManager(  745): WINDOW DIED Window{f18ba0a u0 
+com.jusprint/com.jusprint.MainActivity}
+> V/WindowManager(  745):     
+startWCT=WindowContainerTransaction { changes= {} hops= [] 
+errorCallbackToken=null taskFragmentOrganizer=null }
+  V/WindowManager(  745):     info={id=186 t=CLOSE f=0x0 trk=0 
+r=[0@Point(0, 0)] c=[
+  V/WindowManager(  745):         {WCT{RemoteToken{7a484f9 
+Task{fc271af #1 type=home}}} m=TO_FRONT 
+f=SHOW_WALLPAPER|MOVE_TO_TOP 
+leash=Surface(name=Task=1#149)/@0x581713f sb=Rect(0, 0 - 1080, 
+2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 
+taskParent=-1 winMode=1 userId=0},
+> E/libbinder.IPCThreadState(  745): Binder transaction 
+failure. id: 7013363, cmd: BR_DEAD_REPLY (29189), error: -22 
+(Invalid argument)
+> W/ActivityManager(  745): pid 745 system sent binder code 7 
+with flags 1 and got error -32
+> W/WindowManager(  745): Exception thrown during 
+dispatchAppVisibility Window{f18ba0a u0 
+com.jusprint/com.jusprint.MainActivity EXITING}
+> W/WindowManager(  745): android.os.DeadObjectException
+  W/WindowManager(  745): 	at 
+android.os.BinderProxy.transactNative(Native Method)
+  W/WindowManager(  745): 	at 
+android.os.BinderProxy.transact(BinderProxy.java:599)
+> V/WindowManager(  745):     
+startWCT=WindowContainerTransaction { changes= {} hops= [] 
+errorCallbackToken=null taskFragmentOrganizer=null }
+  V/WindowManager(  745):     info={id=187 t=OPEN f=0x0 trk=1 
+r=[0@Point(0, 0)] c=[
+  V/WindowManager(  745):         {WCT{RemoteToken{5a0f8e2 
+Task{aa9c093 #149 type=standard A=10219:com.jusprint}}} m=OPEN 
+f=NONE leash=Surface(name=Task=149#2676)/@0x9d81ac4 sb=Rect(0, 
+0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 
+2400) d=0 taskParent=-1 winMode=1 userId=0},
+> D/nativeloader(11560): Load /data/app/~~vDdV7ZcF3muV-ZtF94qWfQ
+==/com.jusprint-zhj4ZcuqzxLLS0FJX5zngA==/base.apk!/lib/x86_64/li
+breactnative.so using class loader ns clns-9 (caller=/data/app/~
+~vDdV7ZcF3muV-ZtF94qWfQ==/com.jusprint-zhj4ZcuqzxLLS0FJX5zngA==/
+base.apk): ok
+  D/jni_lib_merge(11560): Entering merged library JNI_OnLoad.
+  D/jni_lib_merge(11560): Preparing 12 pre-merged libs 
+(including stub)
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativeblob_so.  onload_func: 0x7a89b0b572e0
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_so.  onload_func: 0x7a89b0b97770
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_common_so.  onload_func: 0x7a89b0ba75d0
+  D/jni_lib_merge(11560): Preparing to register 
+librninstance_so.  onload_func: 0x7a89b0be44c0
+  D/jni_lib_merge(11560): Preparing to register 
+libturbomodulejsijni_so.  onload_func: 0x7a89b0d45c00
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativeblob_so.  onload_func: 0x7a89b0b572e0
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_so.  onload_func: 0x7a89b0b97770
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_common_so.  onload_func: 0x7a89b0ba75d0
+  D/jni_lib_merge(11560): Preparing to register 
+librninstance_so.  onload_func: 0x7a89b0be44c0
+  D/jni_lib_merge(11560): Preparing to register 
+libturbomodulejsijni_so.  onload_func: 0x7a89b0d45c00
+> W/HWUI    (11560): Failed to initialize 101010-2 format, 
+error = EGL_SUCCESS
+  D/AppCompatDelegate(11560): Checking for metadata for 
+AppLocalesMetadataHolderService : Service not found
+  E/ashmem  (11560): Pinning is deprecated since Android Q. 
+Please use trim or other methods.
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.startSurface(surfaceId = 0): Schedule
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.attachSurface(surfaceId = 0)
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.getOrCreateReactInstanceTask()
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.getOrCreateReactInstanceTask(): Start
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.getJSBundleLoader()
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.isMetroRunning()
+  D/CompatChangeReporter(11560): Compat change id reported: 
+377864165; UID 10219; state: ENABLED
+  D/DesktopModeFlags(11560): Toggle override initialized to: 
+OVERRIDE_UNSET
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.isMetroRunning(): Async result = true
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.loadJSBundleFromMetro()
+  I/com.jusprint(11560): hiddenapi: Accessing hidden method 
+Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V 
+(runtime_flags=0, domain=platform, api=unsupported) from 
+Landroidx/appcompat/widget/ViewUtils; (domain=app, 
+TargetSdkVersion=36) using reflection: allowed
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.onHostResume(activity)
+> W/unknown:ReactNative(11560): Packager connection already 
+open, nooping.
+  W/HWUI    (11560): Unknown dataspace 0
+  W/WindowManager(  745): Failed looking up window session=null 
+callers=com.android.server.wm.WindowManagerService.addWindow:165
+6 com.android.server.wm.Session.addToDisplayAsUser:269 
+android.view.IWindowSession$Stub.onTransact:608 
+> E/WindowManager(11560): 
+android.view.WindowManager$BadTokenException: Unable to add 
+window -- token null is not valid; is your activity running?
+  E/WindowManager(11560): 	at 
+android.view.ViewRootImpl.setView(ViewRootImpl.java:1687)
+  E/WindowManager(11560): 	at android.view.WindowManagerGlobal.a
+ddView(WindowManagerGlobal.java:491)
+> E/unknown:ReactNative(11560): Unable to display loading 
+message because react activity isn't active, message: Loading 
+from 10.0.2.2:8081ΓÇª
+  W/WindowManager(  745): Failed looking up window session=null 
+callers=com.android.server.wm.WindowManagerService.addWindow:165
+6 com.android.server.wm.Session.addToDisplayAsUser:269 
+android.view.IWindowSession$Stub.onTransact:608 
+  W/WindowManager(  745): Attempted to add window with token 
+that is not a window: null.  Aborting.
+> E/WindowManager(11560): 
+android.view.WindowManager$BadTokenException: Unable to add 
+window -- token null is not valid; is your activity running?
+  E/WindowManager(11560): 	at 
+android.view.ViewRootImpl.setView(ViewRootImpl.java:1687)
+  E/WindowManager(11560): 	at android.view.WindowManagerGlobal.a
+ddView(WindowManagerGlobal.java:491)
+> E/unknown:ReactNative(11560): Unable to display loading 
+message because react activity isn't active, message: 
+Reloading...
+  I/Choreographer(11560): Skipped 32 frames!  The application 
+may be doing too much work on its main thread.
+  D/WindowOnBackDispatcher(11560): setTopOnBackInvokedCallback 
+(unwrapped): 
+android.app.Activity$$ExternalSyntheticLambda0@82bf7c2
+> E/TaskPersister(  745): File error accessing recents 
+directory (directory doesn't exist?).
+  I/HalDevMgr(  745): bestIfaceCreationProposal is null, 
+requestIface=STA, existingIface=[name=wlan0 type=STA]
+  I/ActivityTaskManager(  745): Displayed 
+com.jusprint/.MainActivity for user 0: +4s554ms
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.raiseSoftException(onWindowFocusChange(hasFocus = 
+"true")): Tried to access onWindowFocusChange while context is 
+not ready
+  D/LauncherStateManager( 1201): StateManager.goToState: 
+fromState: Normal, toState: Normal, partial trace:
+  D/LauncherStateManager( 1201): 	at com.android.launcher3.state
+manager.StateManager.moveToRestState(go/retraceme 7101499b44b219
+b757f6885b35ae099b24fc769225595efcaaacae5b0f94500b:6)
+> E/unknown:ReactHost(11560): Unhandled SoftException
+> E/unknown:ReactHost(11560): 
+com.facebook.react.bridge.ReactNoCrashSoftException: 
+raiseSoftException(onWindowFocusChange(hasFocus = "true")): 
+Tried to access onWindowFocusChange while context is not ready
+> E/unknown:ReactHost(11560): 	at com.facebook.react.runtime.Rea
+ctHostImpl.raiseSoftException(ReactHostImpl.kt:861)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.runtime.Rea
+ctHostImpl.raiseSoftException$default(ReactHostImpl.kt:852)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.runtime.Rea
+ctHostImpl.onWindowFocusChange(ReactHostImpl.kt:625)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.ReactDelega
+te.onWindowFocusChanged(ReactDelegate.kt:232)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.ReactActivi
+tyDelegate.onWindowFocusChanged(ReactActivityDelegate.java:237)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.ReactActivi
+ty.onWindowFocusChanged(ReactActivity.java:158)
+> E/unknown:ReactHost(11560): 	at androidx.appcompat.view.Window
+CallbackWrapper.onWindowFocusChanged(WindowCallbackWrapper.java:
+124)
+> E/unknown:ReactHost(11560): 	at com.android.internal.policy.De
+corView.onWindowFocusChanged(DecorView.java:1797)
+> E/unknown:ReactHost(11560): 	at 
+android.view.View.dispatchWindowFocusChanged(View.java:17124)
+> E/unknown:ReactHost(11560): 	at android.view.ViewGroup.dispatc
+hWindowFocusChanged(ViewGroup.java:1529)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl.disp
+atchFocusEvent(ViewRootImpl.java:4962)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl.hand
+leWindowFocusChanged(ViewRootImpl.java:4866)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl.-$$N
+est$mhandleWindowFocusChanged(Unknown Source:0)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl$View
+RootHandler.handleMessageImpl(ViewRootImpl.java:7118)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl$View
+RootHandler.handleMessage(ViewRootImpl.java:7026)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Handler.dispatchMessage(Handler.java:132)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Looper.dispatchMessage(Looper.java:333)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Looper.loopOnce(Looper.java:263)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Looper.loop(Looper.java:367)
+> E/unknown:ReactHost(11560): 	at 
+android.app.ActivityThread.main(ActivityThread.java:9282)
+> E/unknown:ReactHost(11560): 	at 
+java.lang.reflect.Method.invoke(Native Method)
+> E/unknown:ReactHost(11560): 	at com.android.internal.os.Runtim
+eInit$MethodAndArgsCaller.run(RuntimeInit.java:566)
+> E/unknown:ReactHost(11560): 	at 
+com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+  I/FontLog ( 6738): (REDACTED) Query [%s] resolved to %s
+  D/SatelliteController( 6359): 
+getCarrierRoamingNtnConnectType: Falling back to global carrier 
+config connect type: 0
+> I/okhttp.OkHttpClient(11560): java.net.ProtocolException: 
+Expected leading [0-9a-fA-F] character but was 0xd
+  I/okhttp.OkHttpClient(11560): 	at okhttp3.internal.http1.Http1
+ExchangeCodec$ChunkedSource.readChunkSize(Http1ExchangeCodec.kt:
+436)
+  I/okhttp.OkHttpClient(11560): 	at okhttp3.internal.http1.Http1
+ExchangeCodec$ChunkedSource.read(Http1ExchangeCodec.kt:408)
+
+
+
+--------------------------------------------------------------------------------
+
 path: Gemfile
 name of the file: Gemfile
 content:
@@ -312,20 +533,6 @@ content:
  * @format
  */
 import 'react-native-gesture-handler'; // Required for Android
-// Polyfills
-import { Buffer } from 'buffer';
-import process from 'process';
-import 'text-encoding';
-import 'stream-browserify';
-
-global.Buffer = Buffer;
-global.process = process;
-if (!global.TextEncoder) {
-    global.TextEncoder = require('text-encoding').TextEncoder;
-}
-if (!global.TextDecoder) {
-    global.TextDecoder = require('text-encoding').TextDecoder;
-}
 import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
@@ -524,23 +731,21 @@ content:
         "@react-navigation/native": "^7.1.25",
         "@react-navigation/native-stack": "^7.8.6",
         "@reduxjs/toolkit": "^2.11.1",
-        "buffer": "^6.0.3",
-        "events": "^3.3.0",
-        "pdf-lib": "^1.17.1",
-        "process": "^0.11.10",
+        "mqtt": "^5.14.1",
         "react": "19.2.0",
         "react-native": "0.83.0",
         "react-native-blob-util": "^0.24.5",
         "react-native-gesture-handler": "^2.29.1",
+        "react-native-image-picker": "^8.1.0",
         "react-native-linear-gradient": "^2.8.3",
         "react-native-paper": "^5.14.5",
         "react-native-pdf": "^7.0.3",
+        "react-native-reanimated": "^4.2.0",
         "react-native-safe-area-context": "^5.6.2",
         "react-native-screens": "^4.18.0",
         "react-native-vector-icons": "^10.3.0",
-        "react-redux": "^9.2.0",
-        "stream-browserify": "^3.0.0",
-        "text-encoding": "^0.7.0"
+        "react-native-worklets": "^0.7.1",
+        "react-redux": "^9.2.0"
       },
       "devDependencies": {
         "@babel/core": "^7.25.2",
@@ -556,7 +761,6 @@ content:
         "@types/jest": "^29.5.13",
         "@types/react": "^19.2.0",
         "@types/react-test-renderer": "^19.1.0",
-        "@types/text-encoding": "^0.0.40",
         "eslint": "^8.19.0",
         "jest": "^29.6.3",
         "prettier": "2.8.8",
@@ -659,7 +863,6 @@ content:
       "version": "7.27.3",
       "resolved": "https://registry.npmjs.org/@babel/helper-annotate-as-pure/-/helper-annotate-as-pure-7.27.3.tgz",
       "integrity": "sha512-fXSwMQqitTGeHLBC08Eq5yXz2m37E4pJX1qAU1+2cNedz/ifv/bVXft90VeSav5nFO61EcNgwr0aJxbyPaWBPg==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/types": "^7.27.3"
@@ -688,7 +891,6 @@ content:
       "version": "7.28.5",
       "resolved": "https://registry.npmjs.org/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.28.5.tgz",
       "integrity": "sha512-q3WC4JfdODypvxArsJQROfupPBq9+lMwjKq7C33GhbFYJsufD0yd/ziwD+hJucLeWsnFPWZjsU2DNFqBPE7jwQ==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-annotate-as-pure": "^7.27.3",
@@ -710,7 +912,6 @@ content:
       "version": "7.28.5",
       "resolved": "https://registry.npmjs.org/@babel/helper-create-regexp-features-plugin/-/helper-create-regexp-features-plugin-7.28.5.tgz",
       "integrity": "sha512-N1EhvLtHzOvj7QQOUCCS3NrPJP8c5W6ZXCHDn7Yialuy1iu4r5EmIYkXlKNqT99Ciw+W0mDqWoR6HWMZlFP3hw==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-annotate-as-pure": "^7.27.3",
@@ -754,7 +955,6 @@ content:
       "version": "7.28.5",
       "resolved": "https://registry.npmjs.org/@babel/helper-member-expression-to-functions/-/helper-member-expression-to-functions-7.28.5.tgz",
       "integrity": "sha512-cwM7SBRZcPCLgl8a7cY0soT1SptSzAlMH39vwiRpOQkJlh53r5hdHwLSCZpQdVLT39sZt+CRpNwYG4Y2v77atg==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/traverse": "^7.28.5",
@@ -798,7 +998,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/helper-optimise-call-expression/-/helper-optimise-call-expression-7.27.1.tgz",
       "integrity": "sha512-URMGH08NzYFhubNSGJrpUEphGKQwMQYBySzat5cAByY1/YgIRkULnIy3tAMeszlL/so2HbeilYloUmSpd7GdVw==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/types": "^7.27.1"
@@ -838,7 +1037,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/helper-replace-supers/-/helper-replace-supers-7.27.1.tgz",
       "integrity": "sha512-7EHz6qDZc8RYS5ElPoShMheWvEgERonFCs7IAonWLLUTXW59DP14bCZt89/GKyreYn8g3S83m21FelHKbeDCKA==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-member-expression-to-functions": "^7.27.1",
@@ -856,7 +1054,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/helper-skip-transparent-expression-wrappers/-/helper-skip-transparent-expression-wrappers-7.27.1.tgz",
       "integrity": "sha512-Tub4ZKEXqbPjXgWLl2+3JpQAYBJ8+ikpQ2Ocj/q/r0LwE3UhENh7EUabyHjz2kCEsrRY83ew2DQdHluuiDQFzg==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/traverse": "^7.27.1",
@@ -1204,7 +1401,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-syntax-jsx/-/plugin-syntax-jsx-7.27.1.tgz",
       "integrity": "sha512-y8YTNIeKoyhGd9O0Jiyzyyqk8gdjnumGTQPsz0xOZOQ2RmkVJeZ1vmmfIvFEKqucBG6axJGBZDE/7iI5suUI/w==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-plugin-utils": "^7.27.1"
@@ -1322,7 +1518,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-syntax-typescript/-/plugin-syntax-typescript-7.27.1.tgz",
       "integrity": "sha512-xfYCBMxveHrRMnAWl1ZlPXOZjzkN82THFvLhQhFXFt81Z5HnN+EtUkZhv/zcKpmT3fzmWZB0ywiBrbC3vogbwQ==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-plugin-utils": "^7.27.1"
@@ -1355,7 +1550,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-arrow-functions/-/plugin-transform-arrow-functions-7.27.1.tgz",
       "integrity": "sha512-8Z4TGic6xW70FKThA5HYEKKyBpOOsucTOD1DjU3fZxDg+K3zBJcXMFnt/4yQiZnf5+MiOMSXQ9PaEK/Ilh1DeA==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-plugin-utils": "^7.27.1"
@@ -1439,7 +1633,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-class-properties/-/plugin-transform-class-properties-7.27.1.tgz",
       "integrity": "sha512-D0VcalChDMtuRvJIu3U/fwWjf8ZMykz5iZsg77Nuj821vCKI3zCyRLwRdWbsuJ/uRwZhZ002QtCqIkwC/ZkvbA==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-create-class-features-plugin": "^7.27.1",
@@ -1473,7 +1666,6 @@ content:
       "version": "7.28.4",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-classes/-/plugin-transform-classes-7.28.4.tgz",
       "integrity": "sha512-cFOlhIYPBv/iBoc+KS3M6et2XPtbT2HiCRfBXWtfpc9OAyostldxIf9YAYB6ypURBBbx+Qv6nyrLzASfJe+hBA==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-annotate-as-pure": "^7.27.3",
@@ -1776,7 +1968,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-modules-commonjs/-/plugin-transform-modules-commonjs-7.27.1.tgz",
       "integrity": "sha512-OJguuwlTYlN0gBZFRPqwOGNWssZjfIUdS7HMYtN8c1KmwpwHFBwTeFZrg9XZa+DFTitWOW5iTAG7tyCUPsCCyw==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-module-transforms": "^7.27.1",
@@ -1862,7 +2053,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-nullish-coalescing-operator/-/plugin-transform-nullish-coalescing-operator-7.27.1.tgz",
       "integrity": "sha512-aGZh6xMo6q9vq1JGcw58lZ1Z0+i0xB2x0XaauNIUXd6O1xXc3RwoWEBlsTQrY4KQ9Jf0s5rgD6SiNkaUdJegTA==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-plugin-utils": "^7.27.1"
@@ -2169,7 +2359,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-shorthand-properties/-/plugin-transform-shorthand-properties-7.27.1.tgz",
       "integrity": "sha512-N/wH1vcn4oYawbJ13Y/FxcQrWk63jhfNa7jef0ih7PHSIHX2LB7GWE1rkPrOnka9kwMxb6hMl19p7lidA+EHmQ==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-plugin-utils": "^7.27.1"
@@ -2218,7 +2407,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-template-literals/-/plugin-transform-template-literals-7.27.1.tgz",
       "integrity": "sha512-fBJKiV7F2DxZUkg5EtHKXQdbsbURW3DZKQUWphDum0uRP6eHGGa/He9mc0mypL680pb+e/lDIthRohlv8NCHkg==",
-      "dev": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-plugin-utils": "^7.27.1"
@@ -2250,7 +2438,6 @@ content:
       "version": "7.28.5",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-typescript/-/plugin-transform-typescript-7.28.5.tgz",
       "integrity": "sha512-x2Qa+v/CuEoX7Dr31iAfr0IhInrVOWZU/2vJMJ00FOR/2nM0BcBEclpaf9sWCDc+v5e9dMrhSH8/atq/kX7+bA==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-annotate-as-pure": "^7.27.3",
@@ -2303,7 +2490,6 @@ content:
       "version": "7.27.1",
       "resolved": "https://registry.npmjs.org/@babel/plugin-transform-unicode-regex/-/plugin-transform-unicode-regex-7.27.1.tgz",
       "integrity": "sha512-xvINq24TRojDuyt6JGtHmkVkrfVV3FPT16uytxImLeBZqW3/H52yN+kM1MGuyPkIQxrzKwPHs5U/MP3qKyzkGw==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "@babel/helper-create-regexp-features-plugin": "^7.27.1",
@@ -2431,6 +2617,25 @@ content:
       },
       "peerDependencies": {
         "@babel/core": "^7.0.0-0 || ^8.0.0-0 <8.0.0"
+      }
+    },
+    "node_modules/@babel/preset-typescript": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/preset-typescript/-/preset-typescript-7.27.1.tgz",
+      "integrity": "sha512-l7WfQfX0WK4M0v2RudjuQK4u99BS6yLHYEmdtVPP7lKV013zr9DygFuWNlnbvQ9LR+LS0Egz/XAvGx5U9MX0fQ==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/helper-validator-option": "^7.27.1",
+        "@babel/plugin-syntax-jsx": "^7.27.1",
+        "@babel/plugin-transform-modules-commonjs": "^7.27.1",
+        "@babel/plugin-transform-typescript": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
       }
     },
     "node_modules/@babel/runtime": {
@@ -3274,24 +3479,6 @@ content:
       },
       "engines": {
         "node": ">= 8"
-      }
-    },
-    "node_modules/@pdf-lib/standard-fonts": {
-      "version": "1.0.0",
-      "resolved": "https://registry.npmjs.org/@pdf-lib/standard-fonts/-/standard-fonts-1.0.0.tgz",
-      "integrity": "sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==",
-      "license": "MIT",
-      "dependencies": {
-        "pako": "^1.0.6"
-      }
-    },
-    "node_modules/@pdf-lib/upng": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/@pdf-lib/upng/-/upng-1.0.1.tgz",
-      "integrity": "sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==",
-      "license": "MIT",
-      "dependencies": {
-        "pako": "^1.0.10"
       }
     },
     "node_modules/@react-native-community/cli": {
@@ -4240,17 +4427,19 @@ content:
         "@types/react": "*"
       }
     },
+    "node_modules/@types/readable-stream": {
+      "version": "4.0.23",
+      "resolved": "https://registry.npmjs.org/@types/readable-stream/-/readable-stream-4.0.23.tgz",
+      "integrity": "sha512-wwXrtQvbMHxCbBgjHaMGEmImFTQxxpfMOR/ZoQnXxB1woqkUbdLGFDgauo00Py9IudiaqSeiBiulSV9i6XIPig==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/node": "*"
+      }
+    },
     "node_modules/@types/stack-utils": {
       "version": "2.0.3",
       "resolved": "https://registry.npmjs.org/@types/stack-utils/-/stack-utils-2.0.3.tgz",
       "integrity": "sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==",
-      "license": "MIT"
-    },
-    "node_modules/@types/text-encoding": {
-      "version": "0.0.40",
-      "resolved": "https://registry.npmjs.org/@types/text-encoding/-/text-encoding-0.0.40.tgz",
-      "integrity": "sha512-dHzoIdwBfY7jcSTTt6XBkaeiuFQAQD7r/7aJySKDdHkYBCDOvs9jPVt4NYXuwBMn89PP6gSd29WubIS19wTiXg==",
-      "dev": true,
       "license": "MIT"
     },
     "node_modules/@types/use-sync-external-store": {
@@ -4258,6 +4447,15 @@ content:
       "resolved": "https://registry.npmjs.org/@types/use-sync-external-store/-/use-sync-external-store-0.0.6.tgz",
       "integrity": "sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==",
       "license": "MIT"
+    },
+    "node_modules/@types/ws": {
+      "version": "8.18.1",
+      "resolved": "https://registry.npmjs.org/@types/ws/-/ws-8.18.1.tgz",
+      "integrity": "sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/node": "*"
+      }
     },
     "node_modules/@types/yargs": {
       "version": "17.0.35",
@@ -5135,6 +5333,18 @@ content:
         "baseline-browser-mapping": "dist/cli.js"
       }
     },
+    "node_modules/bl": {
+      "version": "6.1.6",
+      "resolved": "https://registry.npmjs.org/bl/-/bl-6.1.6.tgz",
+      "integrity": "sha512-jLsPgN/YSvPUg9UX0Kd73CXpm2Psg9FxMeCSXnk3WBO3CMT10JMwijubhGfHCnFu6TPn1ei3b975dxv7K2pWVg==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/readable-stream": "^4.0.0",
+        "buffer": "^6.0.3",
+        "inherits": "^2.0.4",
+        "readable-stream": "^4.2.0"
+      }
+    },
     "node_modules/body-parser": {
       "version": "1.20.4",
       "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.4.tgz",
@@ -5197,6 +5407,18 @@ content:
       },
       "engines": {
         "node": ">=8"
+      }
+    },
+    "node_modules/broker-factory": {
+      "version": "3.1.10",
+      "resolved": "https://registry.npmjs.org/broker-factory/-/broker-factory-3.1.10.tgz",
+      "integrity": "sha512-BzqK5GYFhvVFvO13uzPN0SCiOsOQuhMUbsGvTXDJMA2/N4GvIlFdxEuueE+60Zk841bBU5G3+fl2cqYEo0wgGg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/runtime": "^7.28.4",
+        "fast-unique-numbers": "^9.0.24",
+        "tslib": "^2.8.1",
+        "worker-factory": "^7.0.46"
       }
     },
     "node_modules/browserslist": {
@@ -5607,6 +5829,12 @@ content:
         "node": "^12.20.0 || >=14"
       }
     },
+    "node_modules/commist": {
+      "version": "3.2.0",
+      "resolved": "https://registry.npmjs.org/commist/-/commist-3.2.0.tgz",
+      "integrity": "sha512-4PIMoPniho+LqXmpS5d3NuGYncG6XWlkBSVGiWycL22dd42OYdUGil2CWuzklaJoNxyxUSpO4MKIBU94viWNAw==",
+      "license": "MIT"
+    },
     "node_modules/compressible": {
       "version": "2.0.18",
       "resolved": "https://registry.npmjs.org/compressible/-/compressible-2.0.18.tgz",
@@ -5661,6 +5889,35 @@ content:
       "resolved": "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz",
       "integrity": "sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==",
       "license": "MIT"
+    },
+    "node_modules/concat-stream": {
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/concat-stream/-/concat-stream-2.0.0.tgz",
+      "integrity": "sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==",
+      "engines": [
+        "node >= 6.0"
+      ],
+      "license": "MIT",
+      "dependencies": {
+        "buffer-from": "^1.0.0",
+        "inherits": "^2.0.3",
+        "readable-stream": "^3.0.2",
+        "typedarray": "^0.0.6"
+      }
+    },
+    "node_modules/concat-stream/node_modules/readable-stream": {
+      "version": "3.6.2",
+      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
+      "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
+      "license": "MIT",
+      "dependencies": {
+        "inherits": "^2.0.3",
+        "string_decoder": "^1.1.1",
+        "util-deprecate": "^1.0.1"
+      },
+      "engines": {
+        "node": ">= 6"
+      }
     },
     "node_modules/connect": {
       "version": "3.7.0",
@@ -6973,6 +7230,19 @@ content:
       "dev": true,
       "license": "MIT"
     },
+    "node_modules/fast-unique-numbers": {
+      "version": "9.0.24",
+      "resolved": "https://registry.npmjs.org/fast-unique-numbers/-/fast-unique-numbers-9.0.24.tgz",
+      "integrity": "sha512-Dv0BYn4waOWse94j16rsZ5w/0zoaCa74O3q6IZjMqaXbtT92Q+Sb6pPk+phGzD8Xh+nueQmSRI3tSCaHKidzKw==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/runtime": "^7.28.4",
+        "tslib": "^2.8.1"
+      },
+      "engines": {
+        "node": ">=18.2.0"
+      }
+    },
     "node_modules/fast-xml-parser": {
       "version": "4.5.3",
       "resolved": "https://registry.npmjs.org/fast-xml-parser/-/fast-xml-parser-4.5.3.tgz",
@@ -7563,6 +7833,12 @@ content:
         "node": ">= 0.4"
       }
     },
+    "node_modules/help-me": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/help-me/-/help-me-5.0.0.tgz",
+      "integrity": "sha512-7xgomUX6ADmcYzFik0HzAxh/73YlKR9bmFzf51CZwR+b6YtzU2m0u49hQCqV6SvlqIqsaxovfwdvbnsw3b/zpg==",
+      "license": "MIT"
+    },
     "node_modules/hermes-compiler": {
       "version": "0.14.0",
       "resolved": "https://registry.npmjs.org/hermes-compiler/-/hermes-compiler-0.14.0.tgz",
@@ -7813,6 +8089,15 @@ content:
       "license": "MIT",
       "dependencies": {
         "loose-envify": "^1.0.0"
+      }
+    },
+    "node_modules/ip-address": {
+      "version": "10.1.0",
+      "resolved": "https://registry.npmjs.org/ip-address/-/ip-address-10.1.0.tgz",
+      "integrity": "sha512-XXADHxXmvT9+CRxhXg56LJovE+bmWnEWB78LB83VZTprKTmaC5QfruXocxzTZ2Kl0DNwKuBdlIhjL8LeY8Sf8Q==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 12"
       }
     },
     "node_modules/is-array-buffer": {
@@ -9017,6 +9302,16 @@ content:
         "@sideway/pinpoint": "^2.0.0"
       }
     },
+    "node_modules/js-sdsl": {
+      "version": "4.3.0",
+      "resolved": "https://registry.npmjs.org/js-sdsl/-/js-sdsl-4.3.0.tgz",
+      "integrity": "sha512-mifzlm2+5nZ+lEcLJMoBK0/IH/bDg8XnJfd/Wq6IP+xoCjLZsTOnV2QpxlVbX9bMnkl5PdEjNtBJ9Cj1NjifhQ==",
+      "license": "MIT",
+      "funding": {
+        "type": "opencollective",
+        "url": "https://opencollective.com/js-sdsl"
+      }
+    },
     "node_modules/js-tokens": {
       "version": "4.0.0",
       "resolved": "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz",
@@ -9921,6 +10216,15 @@ content:
         "url": "https://github.com/sponsors/isaacs"
       }
     },
+    "node_modules/minimist": {
+      "version": "1.2.8",
+      "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz",
+      "integrity": "sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==",
+      "license": "MIT",
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
     "node_modules/minipass": {
       "version": "7.1.2",
       "resolved": "https://registry.npmjs.org/minipass/-/minipass-7.1.2.tgz",
@@ -9940,6 +10244,76 @@ content:
       },
       "engines": {
         "node": ">=10"
+      }
+    },
+    "node_modules/mqtt": {
+      "version": "5.14.1",
+      "resolved": "https://registry.npmjs.org/mqtt/-/mqtt-5.14.1.tgz",
+      "integrity": "sha512-NxkPxE70Uq3Ph7goefQa7ggSsVzHrayCD0OyxlJgITN/EbzlZN+JEPmaAZdxP1LsIT5FamDyILoQTF72W7Nnbw==",
+      "license": "MIT",
+      "dependencies": {
+        "@types/readable-stream": "^4.0.21",
+        "@types/ws": "^8.18.1",
+        "commist": "^3.2.0",
+        "concat-stream": "^2.0.0",
+        "debug": "^4.4.1",
+        "help-me": "^5.0.0",
+        "lru-cache": "^10.4.3",
+        "minimist": "^1.2.8",
+        "mqtt-packet": "^9.0.2",
+        "number-allocator": "^1.0.14",
+        "readable-stream": "^4.7.0",
+        "rfdc": "^1.4.1",
+        "socks": "^2.8.6",
+        "split2": "^4.2.0",
+        "worker-timers": "^8.0.23",
+        "ws": "^8.18.3"
+      },
+      "bin": {
+        "mqtt": "build/bin/mqtt.js",
+        "mqtt_pub": "build/bin/pub.js",
+        "mqtt_sub": "build/bin/sub.js"
+      },
+      "engines": {
+        "node": ">=16.0.0"
+      }
+    },
+    "node_modules/mqtt-packet": {
+      "version": "9.0.2",
+      "resolved": "https://registry.npmjs.org/mqtt-packet/-/mqtt-packet-9.0.2.tgz",
+      "integrity": "sha512-MvIY0B8/qjq7bKxdN1eD+nrljoeaai+qjLJgfRn3TiMuz0pamsIWY2bFODPZMSNmabsLANXsLl4EMoWvlaTZWA==",
+      "license": "MIT",
+      "dependencies": {
+        "bl": "^6.0.8",
+        "debug": "^4.3.4",
+        "process-nextick-args": "^2.0.1"
+      }
+    },
+    "node_modules/mqtt/node_modules/lru-cache": {
+      "version": "10.4.3",
+      "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-10.4.3.tgz",
+      "integrity": "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==",
+      "license": "ISC"
+    },
+    "node_modules/mqtt/node_modules/ws": {
+      "version": "8.18.3",
+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.18.3.tgz",
+      "integrity": "sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">=10.0.0"
+      },
+      "peerDependencies": {
+        "bufferutil": "^4.0.1",
+        "utf-8-validate": ">=5.0.2"
+      },
+      "peerDependenciesMeta": {
+        "bufferutil": {
+          "optional": true
+        },
+        "utf-8-validate": {
+          "optional": true
+        }
       }
     },
     "node_modules/ms": {
@@ -10046,6 +10420,16 @@ content:
       "resolved": "https://registry.npmjs.org/nullthrows/-/nullthrows-1.1.1.tgz",
       "integrity": "sha512-2vPPEi+Z7WqML2jZYddDIfy5Dqb0r2fze2zTxNNknZaFpVHU3mFB3R+DWeJWGVx0ecvttSGlJTI+WG+8Z4cDWw==",
       "license": "MIT"
+    },
+    "node_modules/number-allocator": {
+      "version": "1.0.14",
+      "resolved": "https://registry.npmjs.org/number-allocator/-/number-allocator-1.0.14.tgz",
+      "integrity": "sha512-OrL44UTVAvkKdOdRQZIJpLkAdjXGTRda052sN4sO77bKEzYYqWKMBjQvrJFzqygI99gL6Z4u2xctPW1tB8ErvA==",
+      "license": "MIT",
+      "dependencies": {
+        "debug": "^4.3.1",
+        "js-sdsl": "4.3.0"
+      }
     },
     "node_modules/ob1": {
       "version": "0.83.3",
@@ -10305,6 +10689,21 @@ content:
         "ieee754": "^1.1.13"
       }
     },
+    "node_modules/ora/node_modules/readable-stream": {
+      "version": "3.6.2",
+      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
+      "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
+      "devOptional": true,
+      "license": "MIT",
+      "dependencies": {
+        "inherits": "^2.0.3",
+        "string_decoder": "^1.1.1",
+        "util-deprecate": "^1.0.1"
+      },
+      "engines": {
+        "node": ">= 6"
+      }
+    },
     "node_modules/own-keys": {
       "version": "1.0.1",
       "resolved": "https://registry.npmjs.org/own-keys/-/own-keys-1.0.1.tgz",
@@ -10363,12 +10762,6 @@ content:
       "engines": {
         "node": ">=6"
       }
-    },
-    "node_modules/pako": {
-      "version": "1.0.11",
-      "resolved": "https://registry.npmjs.org/pako/-/pako-1.0.11.tgz",
-      "integrity": "sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==",
-      "license": "(MIT AND Zlib)"
     },
     "node_modules/parent-module": {
       "version": "1.0.1",
@@ -10469,24 +10862,6 @@ content:
       "engines": {
         "node": "20 || >=22"
       }
-    },
-    "node_modules/pdf-lib": {
-      "version": "1.17.1",
-      "resolved": "https://registry.npmjs.org/pdf-lib/-/pdf-lib-1.17.1.tgz",
-      "integrity": "sha512-V/mpyJAoTsN4cnP31vc0wfNA1+p20evqqnap0KLoRUN0Yk/p3wN52DOEsL4oBFcLdb76hlpKPtzJIgo67j/XLw==",
-      "license": "MIT",
-      "dependencies": {
-        "@pdf-lib/standard-fonts": "^1.0.0",
-        "@pdf-lib/upng": "^1.0.1",
-        "pako": "^1.0.11",
-        "tslib": "^1.11.1"
-      }
-    },
-    "node_modules/pdf-lib/node_modules/tslib": {
-      "version": "1.14.1",
-      "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz",
-      "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==",
-      "license": "0BSD"
     },
     "node_modules/picocolors": {
       "version": "1.1.1",
@@ -10660,6 +11035,12 @@ content:
       "engines": {
         "node": ">= 0.6.0"
       }
+    },
+    "node_modules/process-nextick-args": {
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-2.0.1.tgz",
+      "integrity": "sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==",
+      "license": "MIT"
     },
     "node_modules/promise": {
       "version": "8.3.0",
@@ -10998,6 +11379,26 @@ content:
         "react-native": "*"
       }
     },
+    "node_modules/react-native-image-picker": {
+      "version": "8.2.1",
+      "resolved": "https://registry.npmjs.org/react-native-image-picker/-/react-native-image-picker-8.2.1.tgz",
+      "integrity": "sha512-FBeGYJGFDjMdGCcyubDJgBAPCQ4L1D3hwLXyUU91jY9ahOZMTbluceVvRmrEKqnDPFJ0gF1NVhJ0nr1nROFLdg==",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "*",
+        "react-native": "*"
+      }
+    },
+    "node_modules/react-native-is-edge-to-edge": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.2.1.tgz",
+      "integrity": "sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==",
+      "license": "MIT",
+      "peerDependencies": {
+        "react": "*",
+        "react-native": "*"
+      }
+    },
     "node_modules/react-native-linear-gradient": {
       "version": "2.8.3",
       "resolved": "https://registry.npmjs.org/react-native-linear-gradient/-/react-native-linear-gradient-2.8.3.tgz",
@@ -11066,6 +11467,33 @@ content:
         "react": "*",
         "react-native": "*",
         "react-native-blob-util": ">=0.13.7"
+      }
+    },
+    "node_modules/react-native-reanimated": {
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-4.2.0.tgz",
+      "integrity": "sha512-frhu5b8/m/VvaMWz48V8RxcsXnE3hrlErQ5chr21MzAeDCpY4X14sQjvm+jvu3aOI+7Cz2atdRpyhhIuqxVaXg==",
+      "license": "MIT",
+      "dependencies": {
+        "react-native-is-edge-to-edge": "1.2.1",
+        "semver": "7.7.3"
+      },
+      "peerDependencies": {
+        "react": "*",
+        "react-native": "*",
+        "react-native-worklets": ">=0.7.0"
+      }
+    },
+    "node_modules/react-native-reanimated/node_modules/semver": {
+      "version": "7.7.3",
+      "resolved": "https://registry.npmjs.org/semver/-/semver-7.7.3.tgz",
+      "integrity": "sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==",
+      "license": "ISC",
+      "bin": {
+        "semver": "bin/semver.js"
+      },
+      "engines": {
+        "node": ">=10"
       }
     },
     "node_modules/react-native-safe-area-context": {
@@ -11143,6 +11571,58 @@ content:
       "resolved": "https://registry.npmjs.org/yargs-parser/-/yargs-parser-20.2.9.tgz",
       "integrity": "sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==",
       "license": "ISC",
+      "engines": {
+        "node": ">=10"
+      }
+    },
+    "node_modules/react-native-worklets": {
+      "version": "0.7.1",
+      "resolved": "https://registry.npmjs.org/react-native-worklets/-/react-native-worklets-0.7.1.tgz",
+      "integrity": "sha512-KNsvR48ULg73QhTlmwPbdJLPsWcyBotrGPsrDRDswb5FYpQaJEThUKc2ncXE4UM5dn/ewLoQHjSjLaKUVPxPhA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/plugin-transform-arrow-functions": "7.27.1",
+        "@babel/plugin-transform-class-properties": "7.27.1",
+        "@babel/plugin-transform-classes": "7.28.4",
+        "@babel/plugin-transform-nullish-coalescing-operator": "7.27.1",
+        "@babel/plugin-transform-optional-chaining": "7.27.1",
+        "@babel/plugin-transform-shorthand-properties": "7.27.1",
+        "@babel/plugin-transform-template-literals": "7.27.1",
+        "@babel/plugin-transform-unicode-regex": "7.27.1",
+        "@babel/preset-typescript": "7.27.1",
+        "convert-source-map": "2.0.0",
+        "semver": "7.7.3"
+      },
+      "peerDependencies": {
+        "@babel/core": "*",
+        "react": "*",
+        "react-native": "*"
+      }
+    },
+    "node_modules/react-native-worklets/node_modules/@babel/plugin-transform-optional-chaining": {
+      "version": "7.27.1",
+      "resolved": "https://registry.npmjs.org/@babel/plugin-transform-optional-chaining/-/plugin-transform-optional-chaining-7.27.1.tgz",
+      "integrity": "sha512-BQmKPPIuc8EkZgNKsv0X4bPmOoayeu4F1YCwx2/CfmDSXDbp7GnzlUH+/ul5VGfRg1AoFPsrIThlEBj2xb4CAg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/helper-plugin-utils": "^7.27.1",
+        "@babel/helper-skip-transparent-expression-wrappers": "^7.27.1"
+      },
+      "engines": {
+        "node": ">=6.9.0"
+      },
+      "peerDependencies": {
+        "@babel/core": "^7.0.0-0"
+      }
+    },
+    "node_modules/react-native-worklets/node_modules/semver": {
+      "version": "7.7.3",
+      "resolved": "https://registry.npmjs.org/semver/-/semver-7.7.3.tgz",
+      "integrity": "sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==",
+      "license": "ISC",
+      "bin": {
+        "semver": "bin/semver.js"
+      },
       "engines": {
         "node": ">=10"
       }
@@ -11236,17 +11716,19 @@ content:
       }
     },
     "node_modules/readable-stream": {
-      "version": "3.6.2",
-      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
-      "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
+      "version": "4.7.0",
+      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-4.7.0.tgz",
+      "integrity": "sha512-oIGGmcpTLwPga8Bn6/Z75SVaH1z5dUut2ibSyAMVhmUggWpmDn2dapB0n7f8nwaSiRtepAsfJyfXIO5DCVAODg==",
       "license": "MIT",
       "dependencies": {
-        "inherits": "^2.0.3",
-        "string_decoder": "^1.1.1",
-        "util-deprecate": "^1.0.1"
+        "abort-controller": "^3.0.0",
+        "buffer": "^6.0.3",
+        "events": "^3.3.0",
+        "process": "^0.11.10",
+        "string_decoder": "^1.3.0"
       },
       "engines": {
-        "node": ">= 6"
+        "node": "^12.22.0 || ^14.17.0 || >=16.0.0"
       }
     },
     "node_modules/redux": {
@@ -11291,14 +11773,12 @@ content:
       "version": "1.4.2",
       "resolved": "https://registry.npmjs.org/regenerate/-/regenerate-1.4.2.tgz",
       "integrity": "sha512-zrceR/XhGYU/d/opr2EKO7aRHUeiBI8qjtfHqADTwZd6Szfy16la6kqD0MIUs5z5hx6AaKa+PixpPrR289+I0A==",
-      "devOptional": true,
       "license": "MIT"
     },
     "node_modules/regenerate-unicode-properties": {
       "version": "10.2.2",
       "resolved": "https://registry.npmjs.org/regenerate-unicode-properties/-/regenerate-unicode-properties-10.2.2.tgz",
       "integrity": "sha512-m03P+zhBeQd1RGnYxrGyDAPpWX/epKirLrp8e3qevZdVkKtnCrjjWczIbYc8+xd6vcTStVlqfycTx1KR4LOr0g==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "regenerate": "^1.4.2"
@@ -11338,7 +11818,6 @@ content:
       "version": "6.4.0",
       "resolved": "https://registry.npmjs.org/regexpu-core/-/regexpu-core-6.4.0.tgz",
       "integrity": "sha512-0ghuzq67LI9bLXpOX/ISfve/Mq33a4aFRzoQYhnnok1JOFpmE/A2TBGkNVenOGEeSBCjIiWcc6MVOG5HEQv0sA==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "regenerate": "^1.4.2",
@@ -11356,14 +11835,12 @@ content:
       "version": "0.8.0",
       "resolved": "https://registry.npmjs.org/regjsgen/-/regjsgen-0.8.0.tgz",
       "integrity": "sha512-RvwtGe3d7LvWiDQXeQw8p5asZUmfU1G/l6WbUXeHta7Y2PEIvBTwH6E2EfmYUK8pxcxEdEmaomqyp0vZZ7C+3Q==",
-      "devOptional": true,
       "license": "MIT"
     },
     "node_modules/regjsparser": {
       "version": "0.13.0",
       "resolved": "https://registry.npmjs.org/regjsparser/-/regjsparser-0.13.0.tgz",
       "integrity": "sha512-NZQZdC5wOE/H3UT28fVGL+ikOZcEzfMGk/c3iN9UGxzWHMa1op7274oyiUVrAG4B2EuFhus8SvkaYnhvW92p9Q==",
-      "devOptional": true,
       "license": "BSD-2-Clause",
       "dependencies": {
         "jsesc": "~3.1.0"
@@ -11482,6 +11959,12 @@ content:
         "iojs": ">=1.0.0",
         "node": ">=0.10.0"
       }
+    },
+    "node_modules/rfdc": {
+      "version": "1.4.1",
+      "resolved": "https://registry.npmjs.org/rfdc/-/rfdc-1.4.1.tgz",
+      "integrity": "sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==",
+      "license": "MIT"
     },
     "node_modules/rimraf": {
       "version": "3.0.2",
@@ -11991,6 +12474,30 @@ content:
       "devOptional": true,
       "license": "MIT"
     },
+    "node_modules/smart-buffer": {
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz",
+      "integrity": "sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==",
+      "license": "MIT",
+      "engines": {
+        "node": ">= 6.0.0",
+        "npm": ">= 3.0.0"
+      }
+    },
+    "node_modules/socks": {
+      "version": "2.8.7",
+      "resolved": "https://registry.npmjs.org/socks/-/socks-2.8.7.tgz",
+      "integrity": "sha512-HLpt+uLy/pxB+bum/9DzAgiKS8CX1EvbWxI4zlmgGCExImLdiad2iCwXT5Z4c9c3Eq8rP2318mPW2c+QbtjK8A==",
+      "license": "MIT",
+      "dependencies": {
+        "ip-address": "^10.0.1",
+        "smart-buffer": "^4.2.0"
+      },
+      "engines": {
+        "node": ">= 10.0.0",
+        "npm": ">= 3.0.0"
+      }
+    },
     "node_modules/source-map": {
       "version": "0.6.1",
       "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.6.1.tgz",
@@ -12018,6 +12525,15 @@ content:
       "license": "MIT",
       "engines": {
         "node": ">=6"
+      }
+    },
+    "node_modules/split2": {
+      "version": "4.2.0",
+      "resolved": "https://registry.npmjs.org/split2/-/split2-4.2.0.tgz",
+      "integrity": "sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==",
+      "license": "ISC",
+      "engines": {
+        "node": ">= 10.x"
       }
     },
     "node_modules/sprintf-js": {
@@ -12095,16 +12611,6 @@ content:
       },
       "engines": {
         "node": ">= 0.4"
-      }
-    },
-    "node_modules/stream-browserify": {
-      "version": "3.0.0",
-      "resolved": "https://registry.npmjs.org/stream-browserify/-/stream-browserify-3.0.0.tgz",
-      "integrity": "sha512-H73RAHsVBapbim0tU2JwwOiXUj+fikfiaoYAKHF3VJfA0pe2BCzkhAHBlLG6REzE+2WNZcxOXjK7lkso+9euLA==",
-      "license": "MIT",
-      "dependencies": {
-        "inherits": "~2.0.4",
-        "readable-stream": "^3.5.0"
       }
     },
     "node_modules/strict-uri-encode": {
@@ -12420,13 +12926,6 @@ content:
         "node": "*"
       }
     },
-    "node_modules/text-encoding": {
-      "version": "0.7.0",
-      "resolved": "https://registry.npmjs.org/text-encoding/-/text-encoding-0.7.0.tgz",
-      "integrity": "sha512-oJQ3f1hrOnbRLOcwKz0Liq2IcrvDeZRHXhd9RgLrsT+DjWY/nty1Hi7v3dtkaEYbPYe0mUoOfzRrMwfXXwgPUA==",
-      "deprecated": "no longer maintained",
-      "license": "(Unlicense OR Apache-2.0)"
-    },
     "node_modules/text-table": {
       "version": "0.2.0",
       "resolved": "https://registry.npmjs.org/text-table/-/text-table-0.2.0.tgz",
@@ -12527,6 +13026,12 @@ content:
       "peerDependencies": {
         "typescript": ">=4.8.4"
       }
+    },
+    "node_modules/tslib": {
+      "version": "2.8.1",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==",
+      "license": "0BSD"
     },
     "node_modules/type-check": {
       "version": "0.4.0",
@@ -12655,6 +13160,12 @@ content:
         "url": "https://github.com/sponsors/ljharb"
       }
     },
+    "node_modules/typedarray": {
+      "version": "0.0.6",
+      "resolved": "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz",
+      "integrity": "sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==",
+      "license": "MIT"
+    },
     "node_modules/typescript": {
       "version": "5.9.3",
       "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
@@ -12698,7 +13209,6 @@ content:
       "version": "2.0.1",
       "resolved": "https://registry.npmjs.org/unicode-canonical-property-names-ecmascript/-/unicode-canonical-property-names-ecmascript-2.0.1.tgz",
       "integrity": "sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==",
-      "devOptional": true,
       "license": "MIT",
       "engines": {
         "node": ">=4"
@@ -12708,7 +13218,6 @@ content:
       "version": "2.0.0",
       "resolved": "https://registry.npmjs.org/unicode-match-property-ecmascript/-/unicode-match-property-ecmascript-2.0.0.tgz",
       "integrity": "sha512-5kaZCrbp5mmbz5ulBkDkbY0SsPOjKqVS35VpL9ulMPfSl0J0Xsm+9Evphv9CoIZFwre7aJoa94AY6seMKGVN5Q==",
-      "devOptional": true,
       "license": "MIT",
       "dependencies": {
         "unicode-canonical-property-names-ecmascript": "^2.0.0",
@@ -12722,7 +13231,6 @@ content:
       "version": "2.2.1",
       "resolved": "https://registry.npmjs.org/unicode-match-property-value-ecmascript/-/unicode-match-property-value-ecmascript-2.2.1.tgz",
       "integrity": "sha512-JQ84qTuMg4nVkx8ga4A16a1epI9H6uTXAknqxkGF/aFfRLw1xC/Bp24HNLaZhHSkWd3+84t8iXnp1J0kYcZHhg==",
-      "devOptional": true,
       "license": "MIT",
       "engines": {
         "node": ">=4"
@@ -12732,7 +13240,6 @@ content:
       "version": "2.2.0",
       "resolved": "https://registry.npmjs.org/unicode-property-aliases-ecmascript/-/unicode-property-aliases-ecmascript-2.2.0.tgz",
       "integrity": "sha512-hpbDzxUY9BFwX+UeBnxv3Sh1q7HFxj48DTmXchNgRa46lO8uj3/1iEn3MiNUYTg1g9ctIqXCCERn8gYZhHC5lQ==",
-      "devOptional": true,
       "license": "MIT",
       "engines": {
         "node": ">=4"
@@ -13013,6 +13520,53 @@ content:
         "node": ">=0.10.0"
       }
     },
+    "node_modules/worker-factory": {
+      "version": "7.0.46",
+      "resolved": "https://registry.npmjs.org/worker-factory/-/worker-factory-7.0.46.tgz",
+      "integrity": "sha512-Sr1hq2FMgNa04UVhYQacsw+i58BtMimzDb4+CqYphZ97OfefRpURu0UZ+JxMr/H36VVJBfuVkxTK7MytsanC3w==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/runtime": "^7.28.4",
+        "fast-unique-numbers": "^9.0.24",
+        "tslib": "^2.8.1"
+      }
+    },
+    "node_modules/worker-timers": {
+      "version": "8.0.25",
+      "resolved": "https://registry.npmjs.org/worker-timers/-/worker-timers-8.0.25.tgz",
+      "integrity": "sha512-X7Z5dmM6PlrEnaadtFQOyXHGD/IysPA3HZzaC2koqsU1VI+RvyGmjiiLiUBQixK8PH5R7ilkOzZupWskNRaXmA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/runtime": "^7.28.4",
+        "tslib": "^2.8.1",
+        "worker-timers-broker": "^8.0.11",
+        "worker-timers-worker": "^9.0.11"
+      }
+    },
+    "node_modules/worker-timers-broker": {
+      "version": "8.0.11",
+      "resolved": "https://registry.npmjs.org/worker-timers-broker/-/worker-timers-broker-8.0.11.tgz",
+      "integrity": "sha512-uwhxKru8BI9m2tsogxr2fB6POZ8LB2xH+Pu3R0mvQnAZLPgLD6K3IX4LNKPTEgTJ/j5VsuQPB+gLI1NBNKkPlg==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/runtime": "^7.28.4",
+        "broker-factory": "^3.1.10",
+        "fast-unique-numbers": "^9.0.24",
+        "tslib": "^2.8.1",
+        "worker-timers-worker": "^9.0.11"
+      }
+    },
+    "node_modules/worker-timers-worker": {
+      "version": "9.0.11",
+      "resolved": "https://registry.npmjs.org/worker-timers-worker/-/worker-timers-worker-9.0.11.tgz",
+      "integrity": "sha512-pArb5xtgHWImYpXhjg1OFv7JFG0ubmccb73TFoXHXjG830fFj+16N57q9YeBnZX52dn+itRrMoJZ9HaZBVzDaA==",
+      "license": "MIT",
+      "dependencies": {
+        "@babel/runtime": "^7.28.4",
+        "tslib": "^2.8.1",
+        "worker-factory": "^7.0.46"
+      }
+    },
     "node_modules/wrap-ansi": {
       "version": "7.0.0",
       "resolved": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz",
@@ -13179,23 +13733,21 @@ content:
     "@react-navigation/native": "^7.1.25",
     "@react-navigation/native-stack": "^7.8.6",
     "@reduxjs/toolkit": "^2.11.1",
-    "buffer": "^6.0.3",
-    "events": "^3.3.0",
-    "pdf-lib": "^1.17.1",
-    "process": "^0.11.10",
+    "mqtt": "^5.14.1",
     "react": "19.2.0",
     "react-native": "0.83.0",
     "react-native-blob-util": "^0.24.5",
     "react-native-gesture-handler": "^2.29.1",
+    "react-native-image-picker": "^8.1.0",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-paper": "^5.14.5",
     "react-native-pdf": "^7.0.3",
+    "react-native-reanimated": "^4.2.0",
     "react-native-safe-area-context": "^5.6.2",
     "react-native-screens": "^4.18.0",
     "react-native-vector-icons": "^10.3.0",
-    "react-redux": "^9.2.0",
-    "stream-browserify": "^3.0.0",
-    "text-encoding": "^0.7.0"
+    "react-native-worklets": "^0.7.1",
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -13211,7 +13763,6 @@ content:
     "@types/jest": "^29.5.13",
     "@types/react": "^19.2.0",
     "@types/react-test-renderer": "^19.1.0",
-    "@types/text-encoding": "^0.0.40",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
     "prettier": "2.8.8",
@@ -17696,7 +18247,8 @@ const styles = StyleSheet.create({
 path: src\navigation\AppNavigator.tsx
 name of the file: AppNavigator.tsx
 content:
-import React from 'react';
+import React, { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainTabNavigator } from './MainTabNavigator';
@@ -17710,28 +18262,53 @@ import { Print3DScreen } from '../screens/services/Print3DScreen';
 import { ComponentsStore } from '../screens/services/ComponentsStore';
 import { ProductDetails } from '../screens/marketplace/ProductDetails';
 import { SettingsScreen } from '../screens/profile/SettingsScreen';
-
+import { LoginScreen } from '../screens/auth/LoginScreen';
 import { SplashScreen } from '../screens/SplashScreen';
+
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { checkStoredAuth } from '../store/slices/authSlice';
 
 const Stack = createNativeStackNavigator();
 
 export const AppNavigator = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
+
+    useEffect(() => {
+        dispatch(checkStoredAuth());
+    }, [dispatch]);
+
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' }}>
+                <ActivityIndicator size="large" color="#6C63FF" />
+            </View>
+        );
+    }
+
     return (
         <NavigationContainer>
-            <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Splash" component={SplashScreen} />
-                <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-                <Stack.Screen name="DocumentUpload" component={DocumentUpload} options={{ headerShown: false }} />
-                <Stack.Screen name="PrinterSelection" component={PrinterSelection} options={{ headerShown: true, title: 'Select Printer' }} />
-                <Stack.Screen name="PaymentScreen" component={PaymentScreen} options={{ headerShown: false }} />
-                <Stack.Screen name="JobStatus" component={JobStatus} options={{ headerShown: false }} />
-                <Stack.Screen name="RequirementForm" component={RequirementForm} options={{ headerShown: false }} />
-                <Stack.Screen name="PCBOrder" component={PCBOrderScreen} options={{ headerShown: false }} />
-                <Stack.Screen name="Print3D" component={Print3DScreen} options={{ headerShown: false }} />
-                <Stack.Screen name="ComponentsStore" component={ComponentsStore} options={{ headerShown: false }} />
-
-                <Stack.Screen name="ProductDetails" component={ProductDetails} options={{ headerShown: false }} />
-                <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {!isAuthenticated ? (
+                    // Auth Stack
+                    <Stack.Screen name="Login" component={LoginScreen} />
+                ) : (
+                    // App Stack
+                    <>
+                        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+                        <Stack.Screen name="DocumentUpload" component={DocumentUpload} options={{ headerShown: false }} />
+                        <Stack.Screen name="PrinterSelection" component={PrinterSelection} options={{ headerShown: true, title: 'Select Printer' }} />
+                        <Stack.Screen name="PaymentScreen" component={PaymentScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="JobStatus" component={JobStatus} options={{ headerShown: false }} />
+                        <Stack.Screen name="RequirementForm" component={RequirementForm} options={{ headerShown: false }} />
+                        <Stack.Screen name="PCBOrder" component={PCBOrderScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="Print3D" component={Print3DScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="ComponentsStore" component={ComponentsStore} options={{ headerShown: false }} />
+                        <Stack.Screen name="ProductDetails" component={ProductDetails} options={{ headerShown: false }} />
+                        <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
+                    </>
+                )}
             </Stack.Navigator>
         </NavigationContainer>
     );
@@ -17842,6 +18419,356 @@ export const MainTabNavigator = () => {
         </Tab.Navigator >
     );
 };
+
+--------------------------------------------------------------------------------
+
+path: src\screens\auth\LoginScreen.tsx
+name of the file: LoginScreen.tsx
+content:
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    StyleSheet,
+    Dimensions,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Image,
+    Animated,
+} from 'react-native';
+import {
+    Text,
+    TextInput,
+    Button,
+    useTheme,
+    ActivityIndicator,
+    Snackbar,
+} from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store';
+import { loginUser, updateName } from '../../store/slices/authSlice';
+import { authService } from '../../services/authService';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+export const LoginScreen = () => {
+    const theme = useTheme();
+    const dispatch = useDispatch<AppDispatch>();
+
+    const [email, setEmail] = useState('');
+    const [otp, setOtp] = useState('');
+    const [name, setName] = useState('');
+    const [isOtpSent, setIsOtpSent] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    // Animations
+    const fadeAnim = useState(new Animated.Value(0))[0];
+    const slideAnim = useState(new Animated.Value(20))[0];
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, [isOtpSent]);
+
+    const handleSendOTP = async () => {
+        if (!name.trim()) {
+            setErrorMsg('Please enter your full name');
+            return;
+        }
+        if (!email.trim()) {
+            setErrorMsg('Please enter your email');
+            return;
+        }
+
+        setIsLoading(true);
+        setErrorMsg(null);
+
+        try {
+            const result = await authService.sendOTP(email);
+            if (result.success) {
+                setIsOtpSent(true);
+            } else {
+                setErrorMsg(result.error || 'Failed to send OTP');
+            }
+        } catch (error) {
+            setErrorMsg('An unexpected error occurred');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerifyOTP = async () => {
+        if (!otp || otp.length !== 6) {
+            setErrorMsg('Please enter a valid 6-digit OTP');
+            return;
+        }
+
+        setIsLoading(true);
+        setErrorMsg(null);
+
+        try {
+            const result = await authService.verifyOTP(email, otp, name);
+            if (result.success && result.userId && result.token && result.refreshToken) {
+                // Update name in state
+                if (result.name) {
+                    dispatch(updateName(result.name));
+                }
+
+                // Complete login process
+                await dispatch(loginUser({
+                    userId: result.userId,
+                    accessToken: result.token,
+                    refreshToken: result.refreshToken,
+                })).unwrap();
+            } else {
+                setErrorMsg(result.error || 'Invalid OTP');
+            }
+        } catch (error) {
+            setErrorMsg('Authentication failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.container}
+        >
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <Animated.View
+                    style={[
+                        styles.headerContainer,
+                        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+                    ]}
+                >
+                    <View style={[styles.logoPlaceholder, { backgroundColor: theme.colors.primary }]}>
+                        <Text style={styles.logoText}>JP</Text>
+                    </View>
+                    <Text variant="headlineMedium" style={styles.title}>Welcome to JusPrint</Text>
+                    <Text variant="bodyMedium" style={styles.subtitle}>
+                        {isOtpSent
+                            ? 'Verification code sent!'
+                            : 'Fastest way to get your documents printed'}
+                    </Text>
+                </Animated.View>
+
+                <Animated.View
+                    style={[
+                        styles.formContainer,
+                        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+                    ]}
+                >
+                    {!isOtpSent ? (
+                        <>
+                            <TextInput
+                                label="Full Name"
+                                value={name}
+                                onChangeText={setName}
+                                mode="outlined"
+                                style={styles.input}
+                                left={<TextInput.Icon icon="account-outline" />}
+                                outlineColor="#E0E0E0"
+                                activeOutlineColor={theme.colors.primary}
+                            />
+                            <TextInput
+                                label="Email Address"
+                                value={email}
+                                onChangeText={setEmail}
+                                mode="outlined"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                style={styles.input}
+                                left={<TextInput.Icon icon="email-outline" />}
+                                outlineColor="#E0E0E0"
+                                activeOutlineColor={theme.colors.primary}
+                            />
+                            <Button
+                                mode="contained"
+                                onPress={handleSendOTP}
+                                loading={isLoading}
+                                disabled={isLoading}
+                                style={styles.button}
+                                contentStyle={styles.buttonContent}
+                            >
+                                Get OTP
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <View style={[styles.infoBox, { backgroundColor: '#E8F5E9' }]}>
+                                <Icon name="check-circle-outline" size={20} color="#4CAF50" />
+                                <Text style={[styles.infoText, { color: '#2E7D32' }]}>
+                                    The OTP has been sent to {email}
+                                </Text>
+                            </View>
+                            <TextInput
+                                label="6-Digit OTP"
+                                value={otp}
+                                onChangeText={setOtp}
+                                mode="outlined"
+                                keyboardType="number-pad"
+                                style={styles.input}
+                                maxLength={6}
+                                left={<TextInput.Icon icon="numeric-6-box-outline" />}
+                                outlineColor="#E0E0E0"
+                                activeOutlineColor={theme.colors.primary}
+                            />
+                            <Button
+                                mode="contained"
+                                onPress={handleVerifyOTP}
+                                loading={isLoading}
+                                disabled={isLoading}
+                                style={styles.button}
+                                contentStyle={styles.buttonContent}
+                            >
+                                Verify & Login
+                            </Button>
+                            <Button
+                                mode="text"
+                                onPress={() => setIsOtpSent(false)}
+                                style={styles.textButton}
+                                disabled={isLoading}
+                            >
+                                Change Details
+                            </Button>
+                        </>
+                    )}
+                </Animated.View>
+
+                <View style={styles.footer}>
+                    <Text variant="bodySmall" style={styles.footerText}>
+                        By continuing, you agree to JusPrint's
+                    </Text>
+                    <View style={styles.footerLinks}>
+                        <Text variant="bodySmall" style={styles.link}>Terms of Service</Text>
+                        <Text variant="bodySmall" style={styles.footerText}> and </Text>
+                        <Text variant="bodySmall" style={styles.link}>Privacy Policy</Text>
+                    </View>
+                </View>
+            </ScrollView>
+
+            <Snackbar
+                visible={!!errorMsg}
+                onDismiss={() => setErrorMsg(null)}
+                action={{
+                    label: 'OK',
+                    onPress: () => setErrorMsg(null),
+                }}
+                style={styles.snackbar}
+            >
+                {errorMsg}
+            </Snackbar>
+        </KeyboardAvoidingView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    scrollContent: {
+        flexGrow: 1,
+        paddingHorizontal: 24,
+        paddingTop: Platform.OS === 'ios' ? 80 : 60,
+        paddingBottom: 40,
+    },
+    headerContainer: {
+        alignItems: 'center',
+        marginBottom: 48,
+    },
+    logoPlaceholder: {
+        width: 80,
+        height: 80,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 24,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    logoText: {
+        color: '#FFFFFF',
+        fontSize: 32,
+        fontWeight: 'bold',
+    },
+    title: {
+        fontWeight: 'bold',
+        color: '#1A1A2E',
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    subtitle: {
+        color: '#666666',
+        textAlign: 'center',
+    },
+    formContainer: {
+        width: '100%',
+        marginBottom: 32,
+    },
+    input: {
+        marginBottom: 16,
+        backgroundColor: '#FFFFFF',
+    },
+    button: {
+        marginTop: 8,
+        borderRadius: 12,
+        elevation: 0,
+    },
+    buttonContent: {
+        height: 56,
+    },
+    textButton: {
+        marginTop: 16,
+    },
+    footer: {
+        marginTop: 'auto',
+        alignItems: 'center',
+    },
+    footerText: {
+        color: '#999999',
+    },
+    footerLinks: {
+        flexDirection: 'row',
+        marginTop: 4,
+    },
+    link: {
+        color: '#6C63FF',
+        fontWeight: '600',
+    },
+    snackbar: {
+        backgroundColor: '#323232',
+    },
+    infoBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+        gap: 12,
+    },
+    infoText: {
+        fontSize: 14,
+        fontWeight: '500',
+        flex: 1,
+    },
+});
 
 --------------------------------------------------------------------------------
 
@@ -18512,24 +19439,15 @@ const styles = StyleSheet.create({
 path: src\screens\printing\DocumentUpload.tsx
 name of the file: DocumentUpload.tsx
 content:
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Modal, Image, TextInput, Platform, PermissionsAndroid } from 'react-native';
-import { Text, Button, Card, useTheme, SegmentedButtons, Chip, Snackbar, ActivityIndicator, IconButton, ProgressBar } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Modal, Image } from 'react-native';
+import { Text, Button, Card, useTheme, SegmentedButtons, Chip, Snackbar, ActivityIndicator, IconButton } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppHeader } from '../../components/common/AppHeader';
 import { pick, types } from '@react-native-documents/picker';
 import { Skeleton } from '../../components/common/Skeleton';
 import Pdf from 'react-native-pdf';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import {
-    processDocument as processDocumentService,
-    getPdfPageCount,
-    readFileAsBytes,
-    ProcessedDocument,
-    ProcessingProgress,
-    ProcessSettings
-} from '../../services/documentProcessor';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -18541,37 +19459,8 @@ const getFileType = (name: string, type?: string) => {
     return 'other';
 };
 
-// Helper function to parse page range and calculate page count
-const parsePageRange = (range: string, totalPages: number): number => {
-    if (!range || range.trim().toLowerCase() === 'all') return totalPages;
-
-    try {
-        const parts = range.split(',').map(p => p.trim());
-        const pageSet = new Set<number>();
-
-        for (const part of parts) {
-            if (part.includes('-')) {
-                const [start, end] = part.split('-').map(n => parseInt(n.trim()));
-                if (isNaN(start) || isNaN(end)) continue;
-                for (let i = Math.max(1, start); i <= Math.min(totalPages, end); i++) {
-                    pageSet.add(i);
-                }
-            } else {
-                const page = parseInt(part);
-                if (!isNaN(page) && page >= 1 && page <= totalPages) {
-                    pageSet.add(page);
-                }
-            }
-        }
-
-        return pageSet.size > 0 ? pageSet.size : totalPages;
-    } catch {
-        return totalPages;
-    }
-};
-
 // Backend pricing service (simulated)
-const fetchPricingFromBackend = async (settings: any, fileType: string): Promise<{
+const fetchPricingFromBackend = async (settings: any): Promise<{
     perPage: number;
     total: number;
     currency: string;
@@ -18580,14 +19469,7 @@ const fetchPricingFromBackend = async (settings: any, fileType: string): Promise
     // Simulate network delay
     await new Promise(resolve => setTimeout(() => resolve(undefined), 500));
 
-    // For images, always 1 page
-    let pages = fileType === 'image' ? 1 : settings.totalPages || 10;
-
-    // For PDFs, parse page range if specified
-    if (fileType === 'pdf' && settings.pageRange && settings.pageRange !== 'all') {
-        pages = parsePageRange(settings.pageRange, settings.totalPages || 10);
-    }
-
+    const pages = settings.totalPages || 10;
     const copies = settings.copies || 1;
 
     // Base pricing from backend
@@ -18622,13 +19504,6 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
 
     // Preview Modal State
     const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-    const [currentPreviewPage, setCurrentPreviewPage] = useState(1);
-
-    // Document Processing State
-    const [processedDocument, setProcessedDocument] = useState<ProcessedDocument | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [processingProgress, setProcessingProgress] = useState<ProcessingProgress | null>(null);
-    const [actualPageCount, setActualPageCount] = useState<number>(0);
 
     const [settings, setSettings] = useState({
         copies: 1,
@@ -18639,7 +19514,6 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         pagesPerSheet: 1,
         totalPages: existingDoc?.pages || 10,
         binding: false,
-        pageRange: 'all',
         ...presetSettings
     });
 
@@ -18662,81 +19536,15 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         }
     }, [route?.params?.selectedPrinter]);
 
-    // Reset preview page when page range changes
-    useEffect(() => {
-        setCurrentPreviewPage(1);
-    }, [settings.pageRange]);
-
     // Fetch pricing when settings change
     useEffect(() => {
         updatePricing();
-    }, [settings, fileType]);
-
-    // Process document when settings change
-    useEffect(() => {
-        if (document && fileType === 'pdf') {
-            processDocumentWithSettings();
-        }
-    }, [document, settings.pageRange, settings.colorMode, settings.pagesPerSheet, settings.orientation]);
-
-    // Get actual page count when document is loaded
-    useEffect(() => {
-        const fetchPageCount = async () => {
-            if (document && fileType === 'pdf') {
-                try {
-                    const bytes = await readFileAsBytes(document.uri);
-                    const count = await getPdfPageCount(bytes);
-                    setActualPageCount(count);
-                    updateSetting('totalPages', count);
-                } catch (error) {
-                    console.error('Error getting page count:', error);
-                }
-            } else if (fileType === 'image') {
-                setActualPageCount(1);
-                updateSetting('totalPages', 1);
-            }
-        };
-        fetchPageCount();
-    }, [document]);
-
-    const processDocumentWithSettings = useCallback(async () => {
-        if (!document || fileType !== 'pdf') return;
-
-        setIsProcessing(true);
-        setProcessingProgress({ stage: 'reading', progress: 0, message: 'Starting...' });
-
-        try {
-            const processSettings: ProcessSettings = {
-                pageRange: settings.pageRange,
-                colorMode: settings.colorMode as 'color' | 'bw',
-                pagesPerSheet: settings.pagesPerSheet as 1 | 2 | 4,
-                orientation: settings.orientation as 'portrait' | 'landscape',
-                copies: settings.copies,
-                totalPages: actualPageCount || settings.totalPages,
-            };
-
-            const processed = await processDocumentService(
-                document.uri,
-                'pdf',
-                processSettings,
-                (progress) => setProcessingProgress(progress)
-            );
-
-            setProcessedDocument(processed);
-            console.log('Document processed:', processed.pageCount, 'pages');
-        } catch (error) {
-            console.error('Error processing document:', error);
-            setErrorMsg('Failed to process document. Please try again.');
-        } finally {
-            setIsProcessing(false);
-            setProcessingProgress(null);
-        }
-    }, [document, settings, fileType, actualPageCount]);
+    }, [settings]);
 
     const updatePricing = async () => {
         setIsPricingLoading(true);
         try {
-            const price = await fetchPricingFromBackend(settings, fileType);
+            const price = await fetchPricingFromBackend(settings);
             setPricing(price);
         } catch (error) {
             console.error('Failed to fetch pricing:', error);
@@ -18749,100 +19557,30 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         setSettings((prev: typeof settings) => ({ ...prev, [key]: value }));
     };
 
-    const requestStoragePermission = async (): Promise<boolean> => {
-        if (Platform.OS !== 'android') return true;
-
-        // Android 13+ doesn't need READ_EXTERNAL_STORAGE for SAF
-        if (Platform.Version >= 33) return true;
-
-        try {
-            const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                {
-                    title: 'Storage Permission',
-                    message: 'JusPrint needs access to your files to preview documents',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                }
-            );
-            return granted === PermissionsAndroid.RESULTS.GRANTED;
-        } catch (err) {
-            console.warn('Permission request error:', err);
-            return false;
-        }
-    };
-
     const handlePickDocument = async () => {
         if (isPickerOpen) return;
 
         setIsPickerOpen(true);
         try {
-            // Request permission first on Android
-            const hasPermission = await requestStoragePermission();
-            if (!hasPermission) {
-                setErrorMsg('Storage permission is required to pick documents.');
-                setIsPickerOpen(false);
-                return;
-            }
-
             const result = await pick({
                 type: [types.pdf, types.docx, types.doc, types.pptx, types.ppt, types.images],
-                copyTo: 'cachesDirectory',
             });
 
             if (result && result.length > 0) {
                 const file = result[0];
-
-                console.log('Original URI:', file.uri);
-                console.log('Copy URI:', (file as any).fileCopyUri);
-
-                let finalUri = file.uri;
-
-                // For Android, if we have a content:// URI, copy it to cache using ReactNativeBlobUtil
-                if (Platform.OS === 'android' && file.uri.startsWith('content://')) {
-                    try {
-                        // Use fileCopyUri if available, otherwise copy manually
-                        if ((file as any).fileCopyUri) {
-                            finalUri = (file as any).fileCopyUri;
-                        } else {
-                            // Fallback: manually copy using ReactNativeBlobUtil
-                            const fileName = file.name || `temp_${Date.now()}`;
-                            const destPath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${fileName}`;
-
-                            await ReactNativeBlobUtil.MediaCollection.copyToInternal(file.uri, destPath);
-                            finalUri = `file://${destPath}`;
-                        }
-                    } catch (copyError) {
-                        console.error('Error copying file:', copyError);
-                        setErrorMsg('Failed to copy file for preview.');
-                        setIsPickerOpen(false);
-                        return;
-                    }
-                }
-
-                console.log('Final URI:', finalUri);
-
-                // Determine file type
-                const detectedType = getFileType(file.name || '', file.type || '');
-                const isImage = detectedType === 'image';
-
                 setDocument({
                     name: file.name || 'Document',
-                    uri: finalUri,
+                    uri: file.uri,
                     type: file.type,
                     size: file.size,
-                    pages: isImage ? 1 : 10,
+                    pages: 10,
                 });
-                // For images, always 1 page. For PDFs, default to 10 (or could parse PDF to get actual count)
-                updateSetting('totalPages', isImage ? 1 : 10);
-                updateSetting('pageRange', 'all');
+                updateSetting('totalPages', 10);
             }
         } catch (e: any) {
             if (e?.code === 'DOCUMENT_PICKER_CANCELED' || e?.message?.includes('cancel')) {
                 // cancelled
             } else {
-                console.error('Document picker error:', e);
                 setErrorMsg('Failed to pick document. Please try again.');
             }
         } finally {
@@ -18851,27 +19589,7 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
     };
 
     const handleProceed = () => {
-        if (isProcessing) {
-            Snackbar.show({
-                text: 'Please wait for document processing to complete.',
-                duration: Snackbar.LENGTH_SHORT,
-            });
-            return;
-        }
-
-        const docToPass = processedDocument ? {
-            ...document,
-            uri: processedDocument.uri, // Use processed URI
-            pageCount: processedDocument.pageCount,
-            originalUri: document.uri // Keep reference to original
-        } : document;
-
-        navigation.navigate('PaymentScreen', {
-            document: docToPass,
-            settings,
-            pricing,
-            printer: selectedPrinter
-        });
+        navigation.navigate('PaymentScreen', { document, settings, pricing, printer: selectedPrinter });
     };
 
     return (
@@ -18910,30 +19628,6 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                     {document ? (
                         <View style={styles.previewCard}>
                             <View style={styles.previewContainer}>
-                                {/* Processing Indicator */}
-                                {isProcessing && (
-                                    <View style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        zIndex: 10,
-                                        backgroundColor: 'rgba(0,0,0,0.7)',
-                                        padding: 12,
-                                        borderTopLeftRadius: 12,
-                                        borderTopRightRadius: 12,
-                                    }}>
-                                        <Text style={{ color: 'white', fontSize: 12, marginBottom: 8 }}>
-                                            {processingProgress?.message || 'Processing...'}
-                                        </Text>
-                                        <ProgressBar
-                                            progress={(processingProgress?.progress || 0) / 100}
-                                            color={theme.colors.primary}
-                                            style={{ height: 4, borderRadius: 2 }}
-                                        />
-                                    </View>
-                                )}
-
                                 {/* Preview Page Representation */}
                                 <TouchableOpacity
                                     activeOpacity={0.9}
@@ -18944,11 +19638,11 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                         { borderColor: theme.colors.primary, borderWidth: 2, padding: 0, overflow: 'hidden' }
                                     ]}
                                 >
-                                    {/* Actual Content Render - Use processed document if available */}
+                                    {/* Actual Content Render */}
                                     {fileType === 'pdf' ? (
                                         <View style={{ flex: 1, width: '100%', backgroundColor: '#fff' }}>
                                             <Pdf
-                                                source={{ uri: processedDocument?.uri || document.uri, cache: true }}
+                                                source={{ uri: document.uri, cache: true }}
                                                 style={{ flex: 1, width: '100%' }}
                                                 singlePage={true}
                                                 page={1}
@@ -18976,55 +19670,9 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                         </View>
                                     )}
 
-                                    {/* B&W Indicator Overlay - Simple approach for React Native */}
+                                    {/* B&W Filter Overlay (Basic) */}
                                     {settings.colorMode === 'bw' && (fileType === 'pdf' || fileType === 'image') && (
-                                        <View style={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            left: 8,
-                                            backgroundColor: 'rgba(0,0,0,0.7)',
-                                            paddingHorizontal: 8,
-                                            paddingVertical: 4,
-                                            borderRadius: 4
-                                        }}>
-                                            <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>B&W</Text>
-                                        </View>
-                                    )}
-
-                                    {/* N-up Indicator */}
-                                    {settings.pagesPerSheet > 1 && (
-                                        <View style={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            right: 8,
-                                            backgroundColor: theme.colors.primary,
-                                            paddingHorizontal: 8,
-                                            paddingVertical: 4,
-                                            borderRadius: 4
-                                        }}>
-                                            <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>{settings.pagesPerSheet}-up</Text>
-                                        </View>
-                                    )}
-
-                                    {/* Processed Indicator */}
-                                    {processedDocument && !isProcessing && (
-                                        <View style={{
-                                            position: 'absolute',
-                                            bottom: 8,
-                                            left: 8,
-                                            backgroundColor: 'rgba(0,150,0,0.8)',
-                                            paddingHorizontal: 8,
-                                            paddingVertical: 4,
-                                            borderRadius: 4,
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            gap: 4
-                                        }}>
-                                            <Icon name="check-circle" size={12} color="white" />
-                                            <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
-                                                {processedDocument.pageCount} pages
-                                            </Text>
-                                        </View>
+                                        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(50,50,50,0.3)' }} />
                                     )}
 
                                     {/* Overlay Action Button */}
@@ -19035,32 +19683,15 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
 
                                 {/* Instruction Text */}
                                 <Text variant="bodySmall" style={{ color: theme.colors.primary, marginTop: 12, fontWeight: 'bold' }}>
-                                    {isProcessing ? 'Processing...' : 'Tap to Preview'}
+                                    Tap to Preview
                                 </Text>
                             </View>
-
-                            {/* Page Range Input - Only for PDFs */}
-                            {fileType === 'pdf' && (
-                                <View style={styles.pageRangeContainer}>
-                                    <Text variant="labelMedium" style={{ color: '#666', marginBottom: 4 }}>Page Range</Text>
-                                    <TextInput
-                                        style={styles.pageRangeInput}
-                                        value={settings.pageRange}
-                                        onChangeText={(text) => updateSetting('pageRange', text)}
-                                        placeholder="e.g., all, 1-5, 1,3,5"
-                                        placeholderTextColor="#999"
-                                    />
-                                    <Text variant="labelSmall" style={{ color: '#999', marginTop: 2 }}>
-                                        Selected: {parsePageRange(settings.pageRange, settings.totalPages)} pages
-                                    </Text>
-                                </View>
-                            )}
 
                             <View style={styles.pageInfo}>
                                 <View>
                                     <Text variant="bodySmall" style={{ color: '#666' }}>Pages</Text>
                                     <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>
-                                        {fileType === 'image' ? '1' : parsePageRange(settings.pageRange, settings.totalPages)} × {settings.copies}
+                                        {settings.totalPages} × {settings.copies}
                                     </Text>
                                 </View>
                                 <View style={{ alignItems: 'flex-end' }}>
@@ -19239,7 +19870,7 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                 <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
                     <View>
                         <Text variant="bodySmall" style={{ color: '#666' }}>
-                            {(fileType === 'image' ? 1 : parsePageRange(settings.pageRange, settings.totalPages)) * settings.copies} pages total
+                            {settings.totalPages * settings.copies} pages total
                         </Text>
                         {isPricingLoading ? (
                             <Skeleton height={28} width={60} />
@@ -19287,148 +19918,44 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                             settings.orientation === 'landscape' ? styles.fullPreviewLandscape : styles.fullPreviewPortrait
                         ]}>
                             {/* Actual Content Render for Modal */}
-                            <View style={{ flex: 1, width: '100%' }}>
-                                {fileType === 'pdf' ? (
-                                    settings.pagesPerSheet > 1 ? (
-                                        // N-up layout - show multiple pages per sheet
-                                        <View style={{
-                                            flex: 1,
-                                            backgroundColor: 'white',
-                                            padding: 8,
-                                            flexDirection: settings.pagesPerSheet === 2 ? 'column' : 'row',
-                                            flexWrap: 'wrap',
-                                            gap: 4
-                                        }}>
-                                            {Array.from({ length: settings.pagesPerSheet }, (_, i) => (
-                                                <View
-                                                    key={i}
-                                                    style={{
-                                                        width: settings.pagesPerSheet === 2 ? '100%' : '49%',
-                                                        height: settings.pagesPerSheet === 2 ? '49%' : '49%',
-                                                        backgroundColor: '#f5f5f5',
-                                                        overflow: 'hidden'
-                                                    }}
-                                                >
-                                                    <Pdf
-                                                        source={{ uri: document.uri, cache: true }}
-                                                        style={{ flex: 1, width: '100%', height: '100%' }}
-                                                        fitPolicy={0}
-                                                        page={currentPreviewPage + i}
-                                                        singlePage={true}
-                                                        trustAllCerts={false}
-                                                        onError={(error) => console.log('PDF Error:', error)}
-                                                    />
-                                                </View>
-                                            ))}
-                                        </View>
-                                    ) : (
-                                        // Single page view
-                                        <View style={{ flex: 1, backgroundColor: 'white' }}>
-                                            <Pdf
-                                                source={{ uri: document.uri, cache: true }}
-                                                style={{ flex: 1, width: '100%', height: '100%' }}
-                                                fitPolicy={0}
-                                                page={currentPreviewPage}
-                                                singlePage={true}
-                                                trustAllCerts={false}
-                                                onError={(error) => console.log('PDF Modal Error:', error)}
-                                                onLoadComplete={(numberOfPages) => {
-                                                    console.log(`PDF loaded: ${numberOfPages} pages`);
-                                                }}
-                                            />
-                                        </View>
-                                    )
-                                ) : fileType === 'image' ? (
-                                    <View style={{ flex: 1, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Image
-                                            source={{ uri: document.uri }}
-                                            style={{ width: '100%', height: '100%' }}
-                                            resizeMode="contain"
-                                        />
-                                    </View>
-                                ) : (
-                                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', padding: 20, backgroundColor: 'white' }}>
-                                        <Icon
-                                            name={fileType === 'doc' ? 'file-word' : fileType === 'slide' ? 'file-powerpoint' : 'file-document'}
-                                            size={64}
-                                            color={fileType === 'doc' ? '#2B579A' : fileType === 'slide' ? '#D24726' : '#999'}
-                                        />
-                                        <Text variant="titleMedium" style={{ color: '#666', marginTop: 16, textAlign: 'center' }}>
-                                            Preview not supported for {fileType.toUpperCase()}
-                                        </Text>
-                                        <Text variant="bodySmall" style={{ color: '#999', marginTop: 8, textAlign: 'center' }}>
-                                            Please rely on the document name and settings.
-                                        </Text>
-                                    </View>
-                                )}
+                            {/* Actual Content Render for Modal */}
+                            {fileType === 'pdf' ? (
+                                <View style={{ flex: 1, width: '100%', backgroundColor: 'white' }}>
+                                    <Pdf
+                                        source={{ uri: document.uri, cache: true }}
+                                        style={{ flex: 1, width: '100%', height: '100%' }}
+                                        fitPolicy={0}
+                                        page={1}
+                                        trustAllCerts={false}
+                                        onError={(error) => console.log('PDF Modal Error:', error)}
+                                    />
+                                </View>
+                            ) : fileType === 'image' ? (
+                                <Image
+                                    source={{ uri: document.uri }}
+                                    style={{ flex: 1, width: '100%', height: '100%' }}
+                                    resizeMode="contain"
+                                />
+                            ) : (
+                                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', padding: 20 }}>
+                                    <Icon
+                                        name={fileType === 'doc' ? 'file-word' : fileType === 'slide' ? 'file-powerpoint' : 'file-document'}
+                                        size={64}
+                                        color={fileType === 'doc' ? '#2B579A' : fileType === 'slide' ? '#D24726' : '#999'}
+                                    />
+                                    <Text variant="titleMedium" style={{ color: '#666', marginTop: 16, textAlign: 'center' }}>
+                                        Preview not supported for {fileType.toUpperCase()}
+                                    </Text>
+                                    <Text variant="bodySmall" style={{ color: '#999', marginTop: 8, textAlign: 'center' }}>
+                                        Please rely on the document name and settings.
+                                    </Text>
+                                </View>
+                            )}
 
-                                {/* B&W Overlay - Simulates grayscale printing */}
-                                {settings.colorMode === 'bw' && (fileType === 'pdf' || fileType === 'image') && (
-                                    <View style={{
-                                        ...StyleSheet.absoluteFillObject,
-                                        backgroundColor: 'rgba(100,100,100,0.2)',
-                                        pointerEvents: 'none'
-                                    }} />
-                                )}
-
-                                {/* Page Navigation for PDFs */}
-                                {fileType === 'pdf' && (
-                                    <View style={{
-                                        position: 'absolute',
-                                        bottom: 16,
-                                        left: 0,
-                                        right: 0,
-                                        flexDirection: 'row',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        gap: 16
-                                    }}>
-                                        <TouchableOpacity
-                                            style={{
-                                                backgroundColor: 'rgba(0,0,0,0.7)',
-                                                width: 36,
-                                                height: 36,
-                                                borderRadius: 18,
-                                                justifyContent: 'center',
-                                                alignItems: 'center'
-                                            }}
-                                            onPress={() => setCurrentPreviewPage(Math.max(1, currentPreviewPage - (settings.pagesPerSheet || 1)))}
-                                            disabled={currentPreviewPage <= 1}
-                                        >
-                                            <Icon name="chevron-left" size={24} color="white" />
-                                        </TouchableOpacity>
-
-                                        <View style={{
-                                            backgroundColor: 'rgba(0,0,0,0.7)',
-                                            paddingHorizontal: 12,
-                                            paddingVertical: 6,
-                                            borderRadius: 16
-                                        }}>
-                                            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
-                                                {settings.pagesPerSheet > 1
-                                                    ? `Pages ${currentPreviewPage}-${Math.min(currentPreviewPage + settings.pagesPerSheet - 1, settings.totalPages)}`
-                                                    : `Page ${currentPreviewPage}`
-                                                }
-                                            </Text>
-                                        </View>
-
-                                        <TouchableOpacity
-                                            style={{
-                                                backgroundColor: 'rgba(0,0,0,0.7)',
-                                                width: 36,
-                                                height: 36,
-                                                borderRadius: 18,
-                                                justifyContent: 'center',
-                                                alignItems: 'center'
-                                            }}
-                                            onPress={() => setCurrentPreviewPage(Math.min(settings.totalPages, currentPreviewPage + (settings.pagesPerSheet || 1)))}
-                                            disabled={currentPreviewPage >= settings.totalPages}
-                                        >
-                                            <Icon name="chevron-right" size={24} color="white" />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-                            </View>
+                            {/* B&W Filter Overlay */}
+                            {settings.colorMode === 'bw' && (fileType === 'pdf' || fileType === 'image') && (
+                                <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(50,50,50,0.3)', zIndex: 1 }} />
+                            )}
 
                             {/* Watermark / Overlay info */}
                             <View style={styles.watermarkContainer}>
@@ -19438,24 +19965,12 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                             </View>
                         </View>
 
-                        <View style={{ marginTop: 16, alignItems: 'center' }}>
-                            <Text style={{ color: '#666', fontSize: 12, textAlign: 'center' }}>
-                                {fileType === 'pdf' && settings.pageRange !== 'all'
-                                    ? `Printing pages: ${settings.pageRange} (${parsePageRange(settings.pageRange, settings.totalPages)} pages)`
-                                    : `${settings.pageSize} ${settings.orientation}`
-                                }
-                            </Text>
-                            {fileType === 'pdf' && settings.pageRange !== 'all' && (
-                                <Text style={{ color: '#999', fontSize: 10, marginTop: 4 }}>
-                                    Use arrows to preview selected pages
-                                </Text>
-                            )}
-                        </View>
+                        <Text style={{ marginTop: 24, color: '#666', textAlign: 'center' }}>
+                            This is a simulation of how your {settings.pageSize} document will look in {settings.orientation} mode.
+                        </Text>
 
                         <View style={styles.previewStats}>
-                            <Chip icon="file-document-outline">
-                                {fileType === 'image' ? '1' : parsePageRange(settings.pageRange, settings.totalPages)} Pages
-                            </Chip>
+                            <Chip icon="file-document-outline">{settings.totalPages} Pages</Chip>
                             <Chip icon="page-layout-sidebar-right">{settings.sides === 'double' ? 'Duplex' : 'Simplex'}</Chip>
                             <Chip icon="palette-outline">{settings.colorMode === 'color' ? 'Color' : 'B&W'}</Chip>
                         </View>
@@ -19646,7 +20161,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#F4F5F9',
-        padding: 10,
+        padding: 20,
     },
     fullPreviewPage: {
         backgroundColor: 'white',
@@ -19660,12 +20175,12 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     fullPreviewPortrait: {
-        width: SCREEN_WIDTH * 0.9,
-        height: SCREEN_HEIGHT * 0.7,
+        width: SCREEN_WIDTH * 0.7,
+        height: (SCREEN_WIDTH * 0.7) * 1.414, // A4 ratio
     },
     fullPreviewLandscape: {
-        width: SCREEN_WIDTH * 0.95,
-        height: SCREEN_HEIGHT * 0.6,
+        width: SCREEN_WIDTH * 0.85,
+        height: (SCREEN_WIDTH * 0.85) / 1.414,
     },
     simulatedContent: {
         width: '80%',
@@ -19693,23 +20208,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 8,
         marginTop: 20,
-    },
-    pageRangeContainer: {
-        width: '100%',
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
-    },
-    pageRangeInput: {
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        fontSize: 14,
-        color: '#1A1A2E',
-        backgroundColor: '#F8F9FA',
     }
 });
 
@@ -21547,9 +22045,14 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-na
 import { Text, Avatar, List, Divider, useTheme, Button, SegmentedButtons } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AppHeader } from '../../components/common/AppHeader';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { logoutUser } from '../../store/slices/authSlice';
 
 export const SettingsScreen = ({ navigation }: { navigation: any }) => {
     const theme = useTheme();
+    const dispatch = useDispatch<AppDispatch>();
+    const { name } = useSelector((state: RootState) => state.auth);
 
     // Mock State for Settings
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -21559,17 +22062,21 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
     const [defaultColor, setDefaultColor] = useState('bw');
     const [defaultSides, setDefaultSides] = useState('single');
 
+    const handleLogout = () => {
+        dispatch(logoutUser());
+    };
+
     return (
         <View style={[styles.container, isDarkMode && styles.containerDark]}>
-            <AppHeader title="Settings" showBack={true} showWallet={false} />
+            <AppHeader title="Settings" showBack={true} />
 
             <ScrollView contentContainerStyle={styles.content}>
 
                 {/* Profile Section */}
                 <View style={[styles.profileHeader, isDarkMode && styles.cardDark]}>
-                    <Avatar.Text size={64} label="JD" style={{ backgroundColor: theme.colors.primary }} />
+                    <Avatar.Text size={64} label={name?.substring(0, 2).toUpperCase() || "JD"} style={{ backgroundColor: theme.colors.primary }} />
                     <View style={styles.profileInfo}>
-                        <Text variant="titleLarge" style={[{ fontWeight: 'bold' }, isDarkMode && styles.textDark]}>John Doe</Text>
+                        <Text variant="titleLarge" style={[{ fontWeight: 'bold' }, isDarkMode && styles.textDark]}>{name}</Text>
                         <Text variant="bodyMedium" style={{ color: isDarkMode ? '#AAA' : '#666' }}>Student • ID: 2024001</Text>
                         <TouchableOpacity>
                             <Text style={{ color: theme.colors.primary, marginTop: 4, fontWeight: 'bold' }}>Edit Profile</Text>
@@ -21669,7 +22176,7 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
                         title="Log Out"
                         titleStyle={{ color: '#E74C3C' }}
                         left={props => <List.Icon {...props} icon="logout" color="#E74C3C" />}
-                        onPress={() => { }}
+                        onPress={handleLogout}
                     />
                 </View>
 
@@ -23347,12 +23854,75 @@ const styles = StyleSheet.create({
 
 --------------------------------------------------------------------------------
 
+path: src\services\authService.ts
+name of the file: authService.ts
+content:
+import { setSecureItem, STORAGE_KEYS } from '../utils/secureStorage';
+
+export interface AuthResponse {
+    success: boolean;
+    token?: string;
+    refreshToken?: string;
+    userId?: string;
+    name?: string;
+    error?: string;
+}
+
+export const authService = {
+    /**
+     * Send OTP to the provided email
+     */
+    sendOTP: async (email: string): Promise<{ success: boolean; error?: string }> => {
+        console.log(`[AUTH_SERVICE] Sending OTP to ${email}`);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(() => resolve(null), 1500));
+
+        if (!email.includes('@')) {
+            return { success: false, error: 'Invalid email address' };
+        }
+
+        return { success: true };
+    },
+
+    /**
+     * Verify OTP and log the user in
+     */
+    verifyOTP: async (email: string, otp: string, name?: string): Promise<AuthResponse> => {
+        console.log(`[AUTH_SERVICE] Verifying OTP ${otp} for ${email}`);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(() => resolve(null), 2000));
+
+        // For demo purposes, any 6-digit OTP works
+        if (otp.length !== 6) {
+            return { success: false, error: 'OTP must be 6 digits' };
+        }
+
+        if (otp === '000000') {
+            return { success: false, error: 'Invalid OTP' };
+        }
+
+        const mockUserId = `user_${Math.random().toString(36).substr(2, 9)}`;
+        const mockAccessToken = `jwt_access_${Math.random().toString(36).substr(2, 20)}`;
+        const mockRefreshToken = `jwt_refresh_${Math.random().toString(36).substr(2, 20)}`;
+
+        return {
+            success: true,
+            userId: mockUserId,
+            token: mockAccessToken,
+            refreshToken: mockRefreshToken,
+            name: name || email.split('@')[0],
+        };
+    }
+};
+
+--------------------------------------------------------------------------------
+
 path: src\services\documentProcessor.ts
 name of the file: documentProcessor.ts
 content:
-import { PDFDocument } from 'pdf-lib';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import { Buffer } from 'buffer';
+// import { PDFDocument } from 'pdf-lib';
+// import ReactNativeBlobUtil from 'react-native-blob-util';
+// import { Buffer } from 'buffer';
 
 export interface ProcessSettings {
     pageRange: string;
@@ -23376,6 +23946,9 @@ export interface ProcessedDocument {
 }
 
 export const readFileAsBytes = async (uri: string): Promise<Uint8Array> => {
+    console.warn('readFileAsBytes is mocked - dependency removed');
+    return new Uint8Array([]);
+    /*
     try {
         const response = await ReactNativeBlobUtil.fs.readFile(uri.replace('file://', ''), 'base64');
         return new Uint8Array(Buffer.from(response, 'base64'));
@@ -23383,9 +23956,14 @@ export const readFileAsBytes = async (uri: string): Promise<Uint8Array> => {
         console.error('Error reading file:', error);
         throw error;
     }
+    */
 };
 
 export const getPdfPageCount = async (bytes: Uint8Array): Promise<number> => {
+    // Mock implementation for debugging
+    console.log('Mock getPdfPageCount called');
+    return 10;
+    /*
     try {
         const pdfDoc = await PDFDocument.load(bytes);
         return pdfDoc.getPageCount();
@@ -23393,6 +23971,7 @@ export const getPdfPageCount = async (bytes: Uint8Array): Promise<number> => {
         console.error('Error counting pages:', error);
         return 0;
     }
+    */
 };
 
 export const processDocument = async (
@@ -23401,6 +23980,16 @@ export const processDocument = async (
     settings: ProcessSettings,
     onProgress?: (progress: ProcessingProgress) => void
 ): Promise<ProcessedDocument> => {
+    // Mock implementation for debugging
+    onProgress?.({ stage: 'processing', progress: 50, message: 'Mock Processing...' });
+
+    return {
+        uri,
+        pageCount: settings.totalPages || 5, // Mock
+        size: 1000
+    };
+
+    /* 
     if (fileType !== 'pdf') {
         const bytes = await readFileAsBytes(uri);
         return {
@@ -23413,20 +24002,16 @@ export const processDocument = async (
     try {
         onProgress?.({ stage: 'reading', progress: 0, message: 'Reading document...' });
         const bytes = await readFileAsBytes(uri);
-
+        
         onProgress?.({ stage: 'processing', progress: 30, message: 'Processing PDF...' });
         const pdfDoc = await PDFDocument.load(bytes);
-
-        // basic implementation - return original if no complex processing needed yet
-        // In a real implementation this would handle n-up, rotation, page extraction
-        // For now we just validate it works
-
+        
         const pageCount = pdfDoc.getPageCount();
-
+        
         onProgress?.({ stage: 'saving', progress: 100, message: 'Complete' });
-
+        
         return {
-            uri, // Return original URI for now until we implement actual modification
+            uri, 
             pageCount,
             size: bytes.length
         };
@@ -23435,6 +24020,7 @@ export const processDocument = async (
         console.error('Processing failed:', error);
         throw error;
     }
+    */
 };
 
 --------------------------------------------------------------------------------
@@ -23816,6 +24402,10 @@ export const authSlice = createSlice({
                 state.isLoading = false;
                 state.isAuthenticated = action.payload.isValid;
                 state.userId = action.payload.userId;
+                // Try to get name from storage or set default
+                if (action.payload.isValid) {
+                    state.name = state.name || 'User';
+                }
             })
             .addCase(checkStoredAuth.rejected, (state) => {
                 state.isLoading = false;

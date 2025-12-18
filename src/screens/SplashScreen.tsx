@@ -27,25 +27,12 @@ export const SplashScreen = ({ navigation }: { navigation: any }) => {
                 useNativeDriver: true,
             })
         ]).start();
-
-        // Check for stored authentication
-        dispatch(checkStoredAuth());
-
-        // For demo: auto-authenticate after splash (remove in production)
-        dispatch(setAuthenticated(true));
     }, [dispatch, fadeAnim, scaleAnim]);
 
     useEffect(() => {
-        // Navigate after auth check completes
-        if (!isLoading) {
-            const timer = setTimeout(() => {
-                // In production: navigate based on isAuthenticated
-                // For demo: always go to MainTabs
-                navigation.replace('MainTabs');
-            }, 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [isLoading, isAuthenticated, navigation]);
+        // The AppNavigator handles switching screens based on isLoading
+        // This screen just remains visible while isLoading is true
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -57,7 +44,7 @@ export const SplashScreen = ({ navigation }: { navigation: any }) => {
                     JusPrint
                 </Text>
                 <Text variant="titleMedium" style={{ color: theme.colors.secondary, marginTop: 8 }}>
-                    The Student Super App
+                    The Printing Super App
                 </Text>
             </Animated.View>
 

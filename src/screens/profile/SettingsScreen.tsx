@@ -3,9 +3,15 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-na
 import { Text, Avatar, List, Divider, useTheme, Button, SegmentedButtons } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AppHeader } from '../../components/common/AppHeader';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { logoutUser } from '../../store/slices/authSlice';
+import { getInitials, getAvatarColor } from '../../utils/avatarUtils';
 
 export const SettingsScreen = ({ navigation }: { navigation: any }) => {
     const theme = useTheme();
+    const dispatch = useDispatch<AppDispatch>();
+    const { name } = useSelector((state: RootState) => state.auth);
 
     // Mock State for Settings
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -15,18 +21,26 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
     const [defaultColor, setDefaultColor] = useState('bw');
     const [defaultSides, setDefaultSides] = useState('single');
 
+    const handleLogout = () => {
+        dispatch(logoutUser());
+    };
+
     return (
         <View style={[styles.container, isDarkMode && styles.containerDark]}>
-            <AppHeader title="Settings" showBack={true} showWallet={false} />
+            <AppHeader title="Settings" showBack={true} />
 
             <ScrollView contentContainerStyle={styles.content}>
 
                 {/* Profile Section */}
                 <View style={[styles.profileHeader, isDarkMode && styles.cardDark]}>
-                    <Avatar.Text size={64} label="JD" style={{ backgroundColor: theme.colors.primary }} />
+                    <Avatar.Text
+                        size={64}
+                        label={getInitials(name)}
+                        style={{ backgroundColor: getAvatarColor(name) }}
+                    />
                     <View style={styles.profileInfo}>
-                        <Text variant="titleLarge" style={[{ fontWeight: 'bold' }, isDarkMode && styles.textDark]}>John Doe</Text>
-                        <Text variant="bodyMedium" style={{ color: isDarkMode ? '#AAA' : '#666' }}>Student • ID: 2024001</Text>
+                        <Text variant="titleLarge" style={[{ fontWeight: 'bold' }, isDarkMode && styles.textDark]}>{name}</Text>
+                        <Text variant="bodyMedium" style={{ color: isDarkMode ? '#AAA' : '#666' }}>User • ID: 2024001</Text>
                         <TouchableOpacity>
                             <Text style={{ color: theme.colors.primary, marginTop: 4, fontWeight: 'bold' }}>Edit Profile</Text>
                         </TouchableOpacity>
@@ -125,7 +139,7 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
                         title="Log Out"
                         titleStyle={{ color: '#E74C3C' }}
                         left={props => <List.Icon {...props} icon="logout" color="#E74C3C" />}
-                        onPress={() => { }}
+                        onPress={handleLogout}
                     />
                 </View>
 

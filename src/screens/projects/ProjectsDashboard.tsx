@@ -21,7 +21,7 @@ export const ProjectsDashboard = ({ navigation }: { navigation: any }) => {
 
     return (
         <View style={[styles.container, { backgroundColor: '#F4F5F9' }]}>
-            <AppHeader title="Projects" subtitle="Student Innovation Hub" />
+            <AppHeader title="Projects" subtitle="Innovation Hub" />
             <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
 
                 {/* Hero Section */}

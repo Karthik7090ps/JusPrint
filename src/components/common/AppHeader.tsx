@@ -4,6 +4,9 @@ import { Text, useTheme, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { getInitials, getAvatarColor } from '../../utils/avatarUtils';
 
 interface AppHeaderProps {
     showLogo?: boolean;
@@ -24,6 +27,10 @@ export const AppHeader = ({
     const theme = useTheme();
     const navigation = useNavigation<any>();
     const insets = useSafeAreaInsets();
+    const { name } = useSelector((state: RootState) => state.auth);
+
+    const initials = getInitials(name);
+    const avatarColor = getAvatarColor(name);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
@@ -64,10 +71,10 @@ export const AppHeader = ({
 
                 {/* Profile Button Only */}
                 <TouchableOpacity
-                    style={styles.profileBtn}
+                    style={[styles.profileBtn, { backgroundColor: avatarColor }]}
                     onPress={() => navigation.navigate('Settings')}
                 >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>JD</Text>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{initials}</Text>
                 </TouchableOpacity>
             </View>
         </View>

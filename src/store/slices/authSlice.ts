@@ -10,7 +10,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-    name: 'Student',
+    name: 'User',
     balance: 450.00,
     isAuthenticated: false,
     userId: null,
@@ -25,14 +25,18 @@ const initialState: AuthState = {
 export const checkStoredAuth = createAsyncThunk(
     'auth/checkStoredAuth',
     async () => {
+        // Add a slight delay for splash screen visibility
+        await new Promise(resolve => setTimeout(() => resolve(null), 1500));
+
         const userId = await getSecureItem(STORAGE_KEYS.USER_ID);
         const token = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
+        const name = await getSecureItem(STORAGE_KEYS.USER_NAME);
 
         if (userId && token) {
             // In production, validate token with backend here
-            return { userId, isValid: true };
+            return { userId, name, isValid: true };
         }
-        return { userId: null, isValid: false };
+        return { userId: null, name: null, isValid: false };
     }
 );
 
@@ -56,8 +60,18 @@ export const logoutUser = createAsyncThunk(
         await deleteSecureItem(STORAGE_KEYS.USER_ID);
         await deleteSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
         await deleteSecureItem(STORAGE_KEYS.REFRESH_TOKEN);
+        await deleteSecureItem(STORAGE_KEYS.USER_NAME);
 
         return true;
+    }
+);
+
+// Update user name and persist it
+export const updateUserName = createAsyncThunk(
+    'auth/updateUserName',
+    async (name: string) => {
+        await setSecureItem(STORAGE_KEYS.USER_NAME, name);
+        return name;
     }
 );
 
@@ -83,9 +97,14 @@ export const authSlice = createSlice({
                 state.isLoading = true;
             })
             .addCase(checkStoredAuth.fulfilled, (state, action) => {
-                state.isLoading = false;
                 state.isAuthenticated = action.payload.isValid;
                 state.userId = action.payload.userId;
+                // Try to get name from storage or set default
+                if (action.payload.isValid) {
+                    state.name = action.payload.name || 'User';
+                }
+                // Short delay to ensure splash is visible
+                state.isLoading = false;
             })
             .addCase(checkStoredAuth.rejected, (state) => {
                 state.isLoading = false;
@@ -108,13 +127,17 @@ export const authSlice = createSlice({
             });
 
         // Logout
-        builder
-            .addCase(logoutUser.fulfilled, (state) => {
-                state.isAuthenticated = false;
-                state.userId = null;
-                state.name = 'Guest';
-                state.balance = 0;
-            });
+        builder.addCase(logoutUser.fulfilled, (state) => {
+            state.isAuthenticated = false;
+            state.userId = null;
+            state.name = 'Guest';
+            state.balance = 0;
+        });
+
+        // Update Name
+        builder.addCase(updateUserName.fulfilled, (state, action) => {
+            state.name = action.payload;
+        });
     },
 });
 
