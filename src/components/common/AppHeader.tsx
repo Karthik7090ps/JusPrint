@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { Text, useTheme, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface AppHeaderProps {
@@ -9,87 +10,82 @@ interface AppHeaderProps {
     title?: string;
     subtitle?: string;
     showBack?: boolean;
-    showWallet?: boolean;
-    walletBalance?: number;
 }
 
 /**
- * AppHeader - Stylish header with JusPrint logo
+ * AppHeader - Stylish header with JusPrint logo and safe area handling
  */
 export const AppHeader = ({
     showLogo = true,
     title,
     subtitle,
     showBack = false,
-    showWallet = true,
-    walletBalance = 450,
 }: AppHeaderProps) => {
     const theme = useTheme();
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
 
     return (
-        <View style={styles.container}>
-            <View style={styles.leftSection}>
-                {showBack && (
-                    <IconButton
-                        icon="arrow-left"
-                        size={24}
-                        onPress={() => navigation.goBack()}
-                        style={{ marginRight: 4 }}
-                    />
-                )}
+        <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+            <StatusBar barStyle="dark-content" backgroundColor="white" />
+            <View style={styles.content}>
+                <View style={styles.leftSection}>
+                    {showBack && (
+                        <IconButton
+                            icon="arrow-left"
+                            size={24}
+                            onPress={() => navigation.goBack()}
+                            style={{ marginRight: 4, marginLeft: -8 }}
+                        />
+                    )}
 
-                {showLogo ? (
-                    <View style={styles.logoContainer}>
-                        <View style={[styles.logoIcon, { backgroundColor: theme.colors.primary }]}>
-                            <Icon name="printer" size={20} color="white" />
+                    {showLogo ? (
+                        <View style={styles.logoContainer}>
+                            <View style={[styles.logoIcon, { backgroundColor: theme.colors.primary }]}>
+                                <Icon name="printer" size={20} color="white" />
+                            </View>
+                            <View>
+                                <Text style={styles.logoText}>
+                                    <Text style={{ color: theme.colors.primary }}>Jus</Text>
+                                    <Text style={{ color: '#FF9F43' }}>Print</Text>
+                                </Text>
+                                {subtitle && (
+                                    <Text style={styles.subtitle}>{subtitle}</Text>
+                                )}
+                            </View>
                         </View>
+                    ) : (
                         <View>
-                            <Text style={styles.logoText}>
-                                <Text style={{ color: theme.colors.primary }}>Jus</Text>
-                                <Text style={{ color: '#FF9F43' }}>Print</Text>
-                            </Text>
-                            {subtitle && (
-                                <Text style={styles.subtitle}>{subtitle}</Text>
-                            )}
+                            <Text variant="titleLarge" style={styles.title}>{title}</Text>
+                            {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
                         </View>
-                    </View>
-                ) : (
-                    <View>
-                        <Text variant="titleLarge" style={styles.title}>{title}</Text>
-                        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-                    </View>
-                )}
-            </View>
-
-            {showWallet && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <TouchableOpacity style={styles.walletBadge} onPress={() => navigation.navigate('Wallet')}>
-                        <Icon name="wallet" size={18} color={theme.colors.primary} />
-                        <Text style={[styles.walletText, { color: theme.colors.primary }]}>
-                            ₹{walletBalance}
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.profileBtn}
-                        onPress={() => navigation.navigate('Settings')}
-                    >
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>JD</Text>
-                    </TouchableOpacity>
+                    )}
                 </View>
-            )}
+
+                {/* Profile Button Only */}
+                <TouchableOpacity
+                    style={styles.profileBtn}
+                    onPress={() => navigation.navigate('Settings')}
+                >
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>JD</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
+        backgroundColor: 'white',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    content: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: 'white',
+        paddingBottom: 12,
     },
     leftSection: {
         flexDirection: 'row',
@@ -120,25 +116,12 @@ const styles = StyleSheet.create({
         color: '#888',
         marginTop: 2,
     },
-    walletBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFF5F0',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-        gap: 6,
-    },
-    walletText: {
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
     profileBtn: {
         width: 36,
         height: 36,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#9B59B6', // Purple for profile
+        backgroundColor: '#9B59B6',
         borderRadius: 18,
         borderWidth: 2,
         borderColor: 'white',

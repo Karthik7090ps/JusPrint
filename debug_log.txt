@@ -1,0 +1,222 @@
+﻿
+> W/InputDispatcher(  745): channel 'f18ba0a 
+com.jusprint/com.jusprint.MainActivity' ~ Consumer closed input 
+channel or an error occurred.  events=0x9
+  E/InputDispatcher(  745): channel 'f18ba0a 
+com.jusprint/com.jusprint.MainActivity' ~ Channel is 
+unrecoverably broken and will be disposed!
+  I/WindowManager(  745): WINDOW DIED Window{f18ba0a u0 
+com.jusprint/com.jusprint.MainActivity}
+> V/WindowManager(  745):     
+startWCT=WindowContainerTransaction { changes= {} hops= [] 
+errorCallbackToken=null taskFragmentOrganizer=null }
+  V/WindowManager(  745):     info={id=186 t=CLOSE f=0x0 trk=0 
+r=[0@Point(0, 0)] c=[
+  V/WindowManager(  745):         {WCT{RemoteToken{7a484f9 
+Task{fc271af #1 type=home}}} m=TO_FRONT 
+f=SHOW_WALLPAPER|MOVE_TO_TOP 
+leash=Surface(name=Task=1#149)/@0x581713f sb=Rect(0, 0 - 1080, 
+2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 
+taskParent=-1 winMode=1 userId=0},
+> E/libbinder.IPCThreadState(  745): Binder transaction 
+failure. id: 7013363, cmd: BR_DEAD_REPLY (29189), error: -22 
+(Invalid argument)
+> W/ActivityManager(  745): pid 745 system sent binder code 7 
+with flags 1 and got error -32
+> W/WindowManager(  745): Exception thrown during 
+dispatchAppVisibility Window{f18ba0a u0 
+com.jusprint/com.jusprint.MainActivity EXITING}
+> W/WindowManager(  745): android.os.DeadObjectException
+  W/WindowManager(  745): 	at 
+android.os.BinderProxy.transactNative(Native Method)
+  W/WindowManager(  745): 	at 
+android.os.BinderProxy.transact(BinderProxy.java:599)
+> V/WindowManager(  745):     
+startWCT=WindowContainerTransaction { changes= {} hops= [] 
+errorCallbackToken=null taskFragmentOrganizer=null }
+  V/WindowManager(  745):     info={id=187 t=OPEN f=0x0 trk=1 
+r=[0@Point(0, 0)] c=[
+  V/WindowManager(  745):         {WCT{RemoteToken{5a0f8e2 
+Task{aa9c093 #149 type=standard A=10219:com.jusprint}}} m=OPEN 
+f=NONE leash=Surface(name=Task=149#2676)/@0x9d81ac4 sb=Rect(0, 
+0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 
+2400) d=0 taskParent=-1 winMode=1 userId=0},
+> D/nativeloader(11560): Load /data/app/~~vDdV7ZcF3muV-ZtF94qWfQ
+==/com.jusprint-zhj4ZcuqzxLLS0FJX5zngA==/base.apk!/lib/x86_64/li
+breactnative.so using class loader ns clns-9 (caller=/data/app/~
+~vDdV7ZcF3muV-ZtF94qWfQ==/com.jusprint-zhj4ZcuqzxLLS0FJX5zngA==/
+base.apk): ok
+  D/jni_lib_merge(11560): Entering merged library JNI_OnLoad.
+  D/jni_lib_merge(11560): Preparing 12 pre-merged libs 
+(including stub)
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativeblob_so.  onload_func: 0x7a89b0b572e0
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_so.  onload_func: 0x7a89b0b97770
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_common_so.  onload_func: 0x7a89b0ba75d0
+  D/jni_lib_merge(11560): Preparing to register 
+librninstance_so.  onload_func: 0x7a89b0be44c0
+  D/jni_lib_merge(11560): Preparing to register 
+libturbomodulejsijni_so.  onload_func: 0x7a89b0d45c00
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativeblob_so.  onload_func: 0x7a89b0b572e0
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_so.  onload_func: 0x7a89b0b97770
+> D/jni_lib_merge(11560): Preparing to register 
+libreactnativejni_common_so.  onload_func: 0x7a89b0ba75d0
+  D/jni_lib_merge(11560): Preparing to register 
+librninstance_so.  onload_func: 0x7a89b0be44c0
+  D/jni_lib_merge(11560): Preparing to register 
+libturbomodulejsijni_so.  onload_func: 0x7a89b0d45c00
+> W/HWUI    (11560): Failed to initialize 101010-2 format, 
+error = EGL_SUCCESS
+  D/AppCompatDelegate(11560): Checking for metadata for 
+AppLocalesMetadataHolderService : Service not found
+  E/ashmem  (11560): Pinning is deprecated since Android Q. 
+Please use trim or other methods.
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.startSurface(surfaceId = 0): Schedule
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.attachSurface(surfaceId = 0)
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.getOrCreateReactInstanceTask()
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.getOrCreateReactInstanceTask(): Start
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.getJSBundleLoader()
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.isMetroRunning()
+  D/CompatChangeReporter(11560): Compat change id reported: 
+377864165; UID 10219; state: ENABLED
+  D/DesktopModeFlags(11560): Toggle override initialized to: 
+OVERRIDE_UNSET
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.isMetroRunning(): Async result = true
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.loadJSBundleFromMetro()
+  I/com.jusprint(11560): hiddenapi: Accessing hidden method 
+Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V 
+(runtime_flags=0, domain=platform, api=unsupported) from 
+Landroidx/appcompat/widget/ViewUtils; (domain=app, 
+TargetSdkVersion=36) using reflection: allowed
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.onHostResume(activity)
+> W/unknown:ReactNative(11560): Packager connection already 
+open, nooping.
+  W/HWUI    (11560): Unknown dataspace 0
+  W/WindowManager(  745): Failed looking up window session=null 
+callers=com.android.server.wm.WindowManagerService.addWindow:165
+6 com.android.server.wm.Session.addToDisplayAsUser:269 
+android.view.IWindowSession$Stub.onTransact:608 
+> E/WindowManager(11560): 
+android.view.WindowManager$BadTokenException: Unable to add 
+window -- token null is not valid; is your activity running?
+  E/WindowManager(11560): 	at 
+android.view.ViewRootImpl.setView(ViewRootImpl.java:1687)
+  E/WindowManager(11560): 	at android.view.WindowManagerGlobal.a
+ddView(WindowManagerGlobal.java:491)
+> E/unknown:ReactNative(11560): Unable to display loading 
+message because react activity isn't active, message: Loading 
+from 10.0.2.2:8081ΓÇª
+  W/WindowManager(  745): Failed looking up window session=null 
+callers=com.android.server.wm.WindowManagerService.addWindow:165
+6 com.android.server.wm.Session.addToDisplayAsUser:269 
+android.view.IWindowSession$Stub.onTransact:608 
+  W/WindowManager(  745): Attempted to add window with token 
+that is not a window: null.  Aborting.
+> E/WindowManager(11560): 
+android.view.WindowManager$BadTokenException: Unable to add 
+window -- token null is not valid; is your activity running?
+  E/WindowManager(11560): 	at 
+android.view.ViewRootImpl.setView(ViewRootImpl.java:1687)
+  E/WindowManager(11560): 	at android.view.WindowManagerGlobal.a
+ddView(WindowManagerGlobal.java:491)
+> E/unknown:ReactNative(11560): Unable to display loading 
+message because react activity isn't active, message: 
+Reloading...
+  I/Choreographer(11560): Skipped 32 frames!  The application 
+may be doing too much work on its main thread.
+  D/WindowOnBackDispatcher(11560): setTopOnBackInvokedCallback 
+(unwrapped): 
+android.app.Activity$$ExternalSyntheticLambda0@82bf7c2
+> E/TaskPersister(  745): File error accessing recents 
+directory (directory doesn't exist?).
+  I/HalDevMgr(  745): bestIfaceCreationProposal is null, 
+requestIface=STA, existingIface=[name=wlan0 type=STA]
+  I/ActivityTaskManager(  745): Displayed 
+com.jusprint/.MainActivity for user 0: +4s554ms
+> W/unknown:BridgelessReact(11560): 
+ReactHost{0}.raiseSoftException(onWindowFocusChange(hasFocus = 
+"true")): Tried to access onWindowFocusChange while context is 
+not ready
+  D/LauncherStateManager( 1201): StateManager.goToState: 
+fromState: Normal, toState: Normal, partial trace:
+  D/LauncherStateManager( 1201): 	at com.android.launcher3.state
+manager.StateManager.moveToRestState(go/retraceme 7101499b44b219
+b757f6885b35ae099b24fc769225595efcaaacae5b0f94500b:6)
+> E/unknown:ReactHost(11560): Unhandled SoftException
+> E/unknown:ReactHost(11560): 
+com.facebook.react.bridge.ReactNoCrashSoftException: 
+raiseSoftException(onWindowFocusChange(hasFocus = "true")): 
+Tried to access onWindowFocusChange while context is not ready
+> E/unknown:ReactHost(11560): 	at com.facebook.react.runtime.Rea
+ctHostImpl.raiseSoftException(ReactHostImpl.kt:861)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.runtime.Rea
+ctHostImpl.raiseSoftException$default(ReactHostImpl.kt:852)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.runtime.Rea
+ctHostImpl.onWindowFocusChange(ReactHostImpl.kt:625)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.ReactDelega
+te.onWindowFocusChanged(ReactDelegate.kt:232)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.ReactActivi
+tyDelegate.onWindowFocusChanged(ReactActivityDelegate.java:237)
+> E/unknown:ReactHost(11560): 	at com.facebook.react.ReactActivi
+ty.onWindowFocusChanged(ReactActivity.java:158)
+> E/unknown:ReactHost(11560): 	at androidx.appcompat.view.Window
+CallbackWrapper.onWindowFocusChanged(WindowCallbackWrapper.java:
+124)
+> E/unknown:ReactHost(11560): 	at com.android.internal.policy.De
+corView.onWindowFocusChanged(DecorView.java:1797)
+> E/unknown:ReactHost(11560): 	at 
+android.view.View.dispatchWindowFocusChanged(View.java:17124)
+> E/unknown:ReactHost(11560): 	at android.view.ViewGroup.dispatc
+hWindowFocusChanged(ViewGroup.java:1529)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl.disp
+atchFocusEvent(ViewRootImpl.java:4962)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl.hand
+leWindowFocusChanged(ViewRootImpl.java:4866)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl.-$$N
+est$mhandleWindowFocusChanged(Unknown Source:0)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl$View
+RootHandler.handleMessageImpl(ViewRootImpl.java:7118)
+> E/unknown:ReactHost(11560): 	at android.view.ViewRootImpl$View
+RootHandler.handleMessage(ViewRootImpl.java:7026)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Handler.dispatchMessage(Handler.java:132)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Looper.dispatchMessage(Looper.java:333)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Looper.loopOnce(Looper.java:263)
+> E/unknown:ReactHost(11560): 	at 
+android.os.Looper.loop(Looper.java:367)
+> E/unknown:ReactHost(11560): 	at 
+android.app.ActivityThread.main(ActivityThread.java:9282)
+> E/unknown:ReactHost(11560): 	at 
+java.lang.reflect.Method.invoke(Native Method)
+> E/unknown:ReactHost(11560): 	at com.android.internal.os.Runtim
+eInit$MethodAndArgsCaller.run(RuntimeInit.java:566)
+> E/unknown:ReactHost(11560): 	at 
+com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+  I/FontLog ( 6738): (REDACTED) Query [%s] resolved to %s
+  D/SatelliteController( 6359): 
+getCarrierRoamingNtnConnectType: Falling back to global carrier 
+config connect type: 0
+> I/okhttp.OkHttpClient(11560): java.net.ProtocolException: 
+Expected leading [0-9a-fA-F] character but was 0xd
+  I/okhttp.OkHttpClient(11560): 	at okhttp3.internal.http1.Http1
+ExchangeCodec$ChunkedSource.readChunkSize(Http1ExchangeCodec.kt:
+436)
+  I/okhttp.OkHttpClient(11560): 	at okhttp3.internal.http1.Http1
+ExchangeCodec$ChunkedSource.read(Http1ExchangeCodec.kt:408)
+
+

@@ -7,10 +7,10 @@ export const CustomTabBarButton = ({ children, onPress }: any) => {
         <TouchableOpacity
             style={styles.container}
             onPress={onPress}
-            activeOpacity={0.9}
+            activeOpacity={0.85}
         >
             <View style={styles.button}>
-                <Icon name="printer" size={32} color="white" />
+                <Icon name="printer" size={26} color="white" />
             </View>
         </TouchableOpacity>
     );
@@ -18,23 +18,23 @@ export const CustomTabBarButton = ({ children, onPress }: any) => {
 
 const styles = StyleSheet.create({
     container: {
-        top: -24,
+        top: -12,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#FF6B35',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
-        shadowRadius: 8,
-        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
     },
     button: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#FF6B35',
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: '#1A1A2E', // Neutral dark color instead of bright orange
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 4,
-        borderColor: '#F4F5F9', // Matches background to create floating effect
+        borderWidth: 3,
+        borderColor: '#F4F5F9',
     },
 });

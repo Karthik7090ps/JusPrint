@@ -25,8 +25,8 @@ export const AppNavigator = () => {
                 <Stack.Screen name="MainTabs" component={MainTabNavigator} />
                 <Stack.Screen name="DocumentUpload" component={DocumentUpload} options={{ headerShown: false }} />
                 <Stack.Screen name="PrinterSelection" component={PrinterSelection} options={{ headerShown: true, title: 'Select Printer' }} />
-                <Stack.Screen name="PaymentScreen" component={PaymentScreen} options={{ headerShown: true, title: 'Payment' }} />
-                <Stack.Screen name="JobStatus" component={JobStatus} options={{ headerShown: true, title: 'Tracking' }} />
+                <Stack.Screen name="PaymentScreen" component={PaymentScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="JobStatus" component={JobStatus} options={{ headerShown: false }} />
                 <Stack.Screen name="RequirementForm" component={RequirementForm} options={{ headerShown: false }} />
                 <Stack.Screen name="PCBOrder" component={PCBOrderScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Print3D" component={Print3DScreen} options={{ headerShown: false }} />

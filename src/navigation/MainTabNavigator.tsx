@@ -5,17 +5,21 @@ import { ProjectsDashboard } from '../screens/projects/ProjectsDashboard';
 import { ServicesHub } from '../screens/services/ServicesHub';
 import { MarketplaceHome } from '../screens/marketplace/MarketplaceHome';
 import { CommunityHub } from '../screens/community/CommunityHub';
-// Use MaterialCommunityIcons for rich icons
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CustomTabBarButton } from '../components/common/CustomTabBarButton';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
 export const MainTabNavigator = () => {
     const theme = useTheme();
+    const insets = useSafeAreaInsets();
+
+    // Calculate proper bottom padding for navigation bar
+    const bottomPadding = Platform.OS === 'android' ? Math.max(insets.bottom, 8) : insets.bottom;
 
     return (
         <Tab.Navigator
@@ -23,15 +27,21 @@ export const MainTabNavigator = () => {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: theme.colors.surface,
-                    borderTopWidth: 0,
-                    elevation: 10,
-                    height: 65,
-                    paddingBottom: 10,
+                    backgroundColor: '#FFFFFF',
+                    borderTopWidth: 1,
+                    borderTopColor: '#F0F0F0',
+                    elevation: 8,
+                    height: 60 + bottomPadding,
+                    paddingBottom: bottomPadding,
+                    paddingTop: 6,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4,
                 },
-                tabBarActiveTintColor: theme.colors.primary,
-                tabBarInactiveTintColor: theme.colors.secondary,
-                tabBarLabelStyle: { fontWeight: '600', fontSize: 11, marginBottom: 4 },
+                tabBarActiveTintColor: '#1A1A2E',
+                tabBarInactiveTintColor: '#9CA3AF',
+                tabBarLabelStyle: { fontWeight: '600', fontSize: 10, marginBottom: 2 },
                 tabBarItemStyle: { paddingTop: 4 },
             }}
         >
@@ -64,7 +74,7 @@ export const MainTabNavigator = () => {
                         </View>
                     ),
                     tabBarButton: (props) => <CustomTabBarButton {...props} />,
-                    tabBarLabel: () => null, // Hide label for center button
+                    tabBarLabel: () => null,
                 }}
             />
 
