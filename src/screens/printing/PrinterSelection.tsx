@@ -1,105 +1,177 @@
-import React from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text, Card, Badge, useTheme, Button } from 'react-native-paper';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { printerService, Printer } from '../../services/printerService';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Mock Data
-const PRINTERS = [
-    { id: '1', name: 'Library, 2nd Floor', status: 'Online', queue: 3, distance: '50m', waitTime: '2 mins' },
-    { id: '2', name: 'Engineering Block A', status: 'Busy', queue: 12, distance: '200m', waitTime: '15 mins' },
-    { id: '3', name: 'Hostel Block 4', status: 'Offline', queue: 0, distance: '500m', waitTime: '-' },
-];
-
-export const PrinterSelection = ({ navigation }: { navigation: any }) => {
+export const PrinterSelection = ({ navigation, route }: { navigation: any, route: any }) => {
     const theme = useTheme();
+    const returnRoute = route.params?.returnRoute;
+    const { campusCode, campusName } = useSelector((state: RootState) => state.auth);
+    const [printers, setPrinters] = useState<Printer[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const renderItem = ({ item }: { item: any }) => (
-        <Card style={styles.card} onPress={() => navigation.navigate('PaymentScreen', { printerId: item.id })}>
+    useEffect(() => {
+        if (campusCode) {
+            fetchPrinters();
+        } else {
+            setIsLoading(false);
+        }
+    }, [campusCode]);
+
+    const fetchPrinters = async () => {
+        setIsLoading(true);
+        try {
+            const result = await printerService.getPrintersByCampus(campusCode!);
+            if (result.success) {
+                setPrinters(result.printers);
+            }
+        } catch (error) {
+            console.error('Failed to load printers');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSelectPrinter = (item: Printer) => {
+        if (returnRoute === 'Print') {
+            // Fix nested navigation for MainTabs
+            navigation.navigate('MainTabs', {
+                screen: 'Print',
+                params: { selectedPrinter: item }
+            });
+        } else if (returnRoute) {
+            navigation.navigate(returnRoute, { selectedPrinter: item });
+        } else {
+            // Default flow: If no return route, go to Document Upload with this printer
+            navigation.navigate('DocumentUpload', { selectedPrinter: item });
+        }
+    };
+
+    const renderItem = ({ item }: { item: Printer }) => (
+        <Card
+            style={styles.card}
+            onPress={() => handleSelectPrinter(item)}
+        >
             <Card.Content>
                 <View style={styles.row}>
-                    <View>
+                    <View style={{ flex: 1 }}>
                         <Text variant="titleMedium" style={styles.printerName}>{item.name}</Text>
-                        <Text variant="bodySmall">{item.distance} • ~{item.waitTime} wait</Text>
+                        <Text variant="bodySmall" style={{ color: '#666' }}>{item.location} • {item.model}</Text>
+                        <View style={styles.statusRow}>
+                            <Icon name="clock-outline" size={14} color="#888" />
+                            <Text variant="bodySmall" style={styles.waitTime}>
+                                ~{item.status.estimated_wait_minutes} mins wait
+                            </Text>
+                        </View>
                     </View>
                     <Badge
-                        style={{
-                            backgroundColor: item.status === 'Online' ? theme.colors.primary :
-                                item.status === 'Busy' ? (theme.colors as any).warning : theme.colors.error
-                        }}
+                        style={[
+                            styles.badge,
+                            {
+                                backgroundColor: item.status.is_available ? '#2ECC71' : theme.colors.error
+                            }
+                        ]}
                     >
-                        {item.status}
+                        {item.status.status}
                     </Badge>
                 </View>
+                <Divider style={{ marginVertical: 10 }} />
                 <View style={styles.detailsRow}>
-                    <Text variant="bodySmall">Queue: {item.queue} jobs</Text>
-                    {item.queue < 5 && item.status === 'Online' && <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>Fastest</Text>}
+                    <View style={styles.detailItem}>
+                        <Icon name="tray-full" size={16} color={theme.colors.primary} />
+                        <Text variant="bodySmall">Queue: {item.status.queue_count}</Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                        <Icon name="cash" size={16} color="#4CAF50" />
+                        <Text variant="bodySmall">₹{item.pricing.price_bw_single}/pg (B&W)</Text>
+                    </View>
                 </View>
             </Card.Content>
         </Card>
     );
 
+    if (!campusCode) {
+        return (
+            <View style={styles.emptyContainer}>
+                <Icon name="map-marker-off" size={64} color="#DDD" />
+                <Text variant="titleMedium" style={{ marginTop: 16, color: '#666' }}>No Campus Selected</Text>
+                <Button mode="contained" onPress={() => navigation.navigate('Settings')} style={{ marginTop: 16 }}>
+                    Select Campus in Settings
+                </Button>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
-            {/* Map Placeholder */}
-            <View style={styles.mapPlaceholder}>
-                <Text>Map View Integrating...</Text>
-                <Text variant="bodySmall">(Google Maps / Mapbox)</Text>
+            {/* Campus Info Header */}
+            <View style={[styles.campusHeader, { backgroundColor: theme.colors.primary }]}>
+                <View>
+                    <Text style={styles.campusLabel}>Current Campus</Text>
+                    <Text style={styles.campusValue}>{campusName}</Text>
+                </View>
+                <IconButton
+                    icon="refresh"
+                    iconColor="white"
+                    onPress={fetchPrinters}
+                    disabled={isLoading}
+                />
             </View>
 
             <View style={styles.listContainer}>
-                <Text variant="titleMedium" style={styles.header}>Nearby Printers</Text>
-                <FlatList
-                    data={PRINTERS}
-                    renderItem={renderItem}
-                    keyExtractor={item => item.id}
-                    contentContainerStyle={styles.listContent}
-                />
+                <Text variant="titleMedium" style={styles.header}>Available Printers</Text>
+                {isLoading ? (
+                    <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 40 }} />
+                ) : (
+                    <FlatList
+                        data={printers}
+                        renderItem={renderItem}
+                        keyExtractor={item => item.id}
+                        contentContainerStyle={styles.listContent}
+                        ListEmptyComponent={
+                            <View style={styles.emptyList}>
+                                <Text>No printers found for this campus.</Text>
+                            </View>
+                        }
+                    />
+                )}
             </View>
         </View>
     );
 };
 
+// Adding missing Paper imports
+import { Divider, IconButton } from 'react-native-paper';
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-    },
-    mapPlaceholder: {
-        height: 250,
-        backgroundColor: '#E0E0E0',
-        justifyContent: 'center',
+    container: { flex: 1, backgroundColor: '#F8F9FA' },
+    campusHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        padding: 20,
+        paddingBottom: 40,
     },
+    campusLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12, textTransform: 'uppercase', fontWeight: 'bold' },
+    campusValue: { color: 'white', fontSize: 20, fontWeight: 'bold' },
     listContainer: {
-        flex: 1,
-        backgroundColor: 'white',
-        marginTop: -20, // Overlap map slightly
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        flex: 1, backgroundColor: 'white',
+        marginTop: -20, borderTopLeftRadius: 20, borderTopRightRadius: 20,
         paddingTop: 20,
     },
-    header: {
-        paddingHorizontal: 16,
-        marginBottom: 10,
-        fontWeight: 'bold',
-    },
-    listContent: {
-        paddingHorizontal: 16,
-        paddingBottom: 20,
-    },
-    card: {
-        marginBottom: 12,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    printerName: {
-        fontWeight: '600',
-    },
-    detailsRow: {
-        marginTop: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    }
+    header: { paddingHorizontal: 16, marginBottom: 12, fontWeight: 'bold' },
+    listContent: { paddingHorizontal: 16, paddingBottom: 20 },
+    card: { marginBottom: 12, elevation: 1, borderRadius: 12 },
+    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    printerName: { fontWeight: 'bold' },
+    badge: { paddingHorizontal: 8, height: 24, fontSize: 10, alignSelf: 'center' },
+    statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 },
+    waitTime: { color: '#888' },
+    detailsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    detailItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    emptyList: { alignItems: 'center', marginTop: 40 },
 });

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { setSecureItem, getSecureItem, deleteSecureItem, STORAGE_KEYS } from '../../utils/secureStorage';
+import { authService } from '../../services/authService';
 
 interface AuthState {
     name: string;
@@ -7,6 +8,8 @@ interface AuthState {
     isAuthenticated: boolean;
     userId: string | null;
     isLoading: boolean;
+    campusCode: string | null;
+    campusName: string | null;
 }
 
 const initialState: AuthState = {
@@ -15,6 +18,8 @@ const initialState: AuthState = {
     isAuthenticated: false,
     userId: null,
     isLoading: true, // Start with loading to check stored auth
+    campusCode: null,
+    campusName: null,
 };
 
 /**
@@ -24,19 +29,61 @@ const initialState: AuthState = {
 // Check if user has a stored session on app launch
 export const checkStoredAuth = createAsyncThunk(
     'auth/checkStoredAuth',
-    async () => {
+    async (_, { dispatch }) => {
         // Add a slight delay for splash screen visibility
         await new Promise(resolve => setTimeout(() => resolve(null), 1500));
 
         const userId = await getSecureItem(STORAGE_KEYS.USER_ID);
-        const token = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
-        const name = await getSecureItem(STORAGE_KEYS.USER_NAME);
+        const accessToken = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
+        const refreshToken = await getSecureItem(STORAGE_KEYS.REFRESH_TOKEN);
+        const storedName = await getSecureItem(STORAGE_KEYS.USER_NAME);
+        const campusCode = await getSecureItem(STORAGE_KEYS.CAMPUS_CODE);
+        const campusName = await getSecureItem(STORAGE_KEYS.CAMPUS_NAME);
 
-        if (userId && token) {
-            // In production, validate token with backend here
-            return { userId, name, isValid: true };
+        if (!accessToken || !userId) {
+            return { userId: null, name: null, campusCode, campusName, isValid: false };
         }
-        return { userId: null, name: null, isValid: false };
+
+        // 1. Try to verify the existing access token
+        const verifyRes = await authService.verifyToken(accessToken);
+
+        if (verifyRes.success) {
+            return {
+                userId: verifyRes.userId || userId,
+                name: verifyRes.name || storedName,
+                campusCode,
+                campusName,
+                isValid: true
+            };
+        }
+
+        // 2. Access token expired/invalid, try to refresh if we have a refresh token
+        if (refreshToken) {
+            console.log('[AUTH_SLICE] Access token invalid, attempting refresh');
+            const refreshRes = await authService.refreshAccessToken(refreshToken);
+
+            if (refreshRes.success && refreshRes.token) {
+                // Store the new access token
+                await setSecureItem(STORAGE_KEYS.ACCESS_TOKEN, refreshRes.token);
+
+                // Now verify the new token to get user details
+                const newVerifyRes = await authService.verifyToken(refreshRes.token);
+                if (newVerifyRes.success) {
+                    return {
+                        userId: newVerifyRes.userId || userId,
+                        name: newVerifyRes.name || storedName,
+                        campusCode,
+                        campusName,
+                        isValid: true
+                    };
+                }
+            }
+        }
+
+        // 3. Everything failed, purge storage and log out
+        console.log('[AUTH_SLICE] Auth check failed completely, logging out');
+        await dispatch(logoutUser());
+        return { userId: null, name: null, campusCode: null, campusName: null, isValid: false };
     }
 );
 
@@ -61,6 +108,8 @@ export const logoutUser = createAsyncThunk(
         await deleteSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
         await deleteSecureItem(STORAGE_KEYS.REFRESH_TOKEN);
         await deleteSecureItem(STORAGE_KEYS.USER_NAME);
+        await deleteSecureItem(STORAGE_KEYS.CAMPUS_CODE);
+        await deleteSecureItem(STORAGE_KEYS.CAMPUS_NAME);
 
         return true;
     }
@@ -72,6 +121,16 @@ export const updateUserName = createAsyncThunk(
     async (name: string) => {
         await setSecureItem(STORAGE_KEYS.USER_NAME, name);
         return name;
+    }
+);
+
+// Set selected campus and persist it
+export const selectCampus = createAsyncThunk(
+    'auth/selectCampus',
+    async (campus: { code: string; name: string }) => {
+        await setSecureItem(STORAGE_KEYS.CAMPUS_CODE, campus.code);
+        await setSecureItem(STORAGE_KEYS.CAMPUS_NAME, campus.name);
+        return campus;
     }
 );
 
@@ -99,6 +158,8 @@ export const authSlice = createSlice({
             .addCase(checkStoredAuth.fulfilled, (state, action) => {
                 state.isAuthenticated = action.payload.isValid;
                 state.userId = action.payload.userId;
+                state.campusCode = action.payload.campusCode;
+                state.campusName = action.payload.campusName;
                 // Try to get name from storage or set default
                 if (action.payload.isValid) {
                     state.name = action.payload.name || 'User';
@@ -132,11 +193,19 @@ export const authSlice = createSlice({
             state.userId = null;
             state.name = 'Guest';
             state.balance = 0;
+            state.campusCode = null;
+            state.campusName = null;
         });
 
         // Update Name
         builder.addCase(updateUserName.fulfilled, (state, action) => {
             state.name = action.payload;
+        });
+
+        // Select Campus
+        builder.addCase(selectCampus.fulfilled, (state, action) => {
+            state.campusCode = action.payload.code;
+            state.campusName = action.payload.name;
         });
     },
 });

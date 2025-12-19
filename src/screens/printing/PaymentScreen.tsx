@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, Animated, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Dimensions, Animated, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Text, Button, Card, useTheme, Divider, IconButton, ActivityIndicator, Snackbar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/common/Skeleton';
 import { useDispatch } from 'react-redux';
 import { startPrintJob } from '../../store/slices/printSlice';
+import { printerService } from '../../services/printerService';
+import { paymentService } from '../../services/paymentService';
+import { getSecureItem, STORAGE_KEYS } from '../../utils/secureStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -19,83 +22,6 @@ const UPI_APPS = [
     { id: 'cred', name: 'CRED', icon: 'credit-card', color: '#1A1A1A', popular: false },
 ];
 
-// Backend pricing calculation (simulated)
-const calculatePriceFromBackend = async (settings: any): Promise<{
-    basePrice: number;
-    colorCharge: number;
-    duplexDiscount: number;
-    pageSizeCharge: number;
-    bindingCharge: number;
-    total: number;
-    perPage: number;
-    breakdown: { label: string; amount: number }[];
-}> => {
-    await new Promise(resolve => setTimeout(() => resolve(undefined), 800));
-
-    const pages = settings.totalPages || 10;
-    const copies = settings.copies || 1;
-
-    // Base pricing
-    const bwRate = 2; // ₹2 per page B&W
-    const colorRate = 5; // ₹5 per page Color
-
-    // Calculate base
-    const isColor = settings.colorMode === 'color';
-    const baseRate = isColor ? colorRate : bwRate;
-    const basePrice = baseRate * pages * copies;
-
-    // Color surcharge
-    const colorCharge = isColor ? Math.round(pages * 0.5) : 0;
-
-    // Duplex discount (20% off)
-    const duplexDiscount = settings.sides === 'double' ? -Math.round(basePrice * 0.2) : 0;
-
-    // Page size surcharge
-    let pageSizeCharge = 0;
-    if (settings.pageSize === 'A3') pageSizeCharge = pages * 3;
-    if (settings.pageSize === 'Letter') pageSizeCharge = pages * 1;
-
-    // Binding charge
-    const bindingCharge = settings.binding ? 30 : 0;
-
-    const total = Math.max(basePrice + colorCharge + duplexDiscount + pageSizeCharge + bindingCharge, 0);
-    const perPage = Math.round((total / (pages * copies)) * 100) / 100;
-
-    const breakdown = [
-        { label: `${pages} pages × ${copies} copies @ ₹${baseRate}/page`, amount: basePrice },
-    ];
-
-    if (colorCharge > 0) breakdown.push({ label: 'Color printing charge', amount: colorCharge });
-    if (duplexDiscount < 0) breakdown.push({ label: 'Duplex discount (20%)', amount: duplexDiscount });
-    if (pageSizeCharge > 0) breakdown.push({ label: `${settings.pageSize} size surcharge`, amount: pageSizeCharge });
-    if (bindingCharge > 0) breakdown.push({ label: 'Binding', amount: bindingCharge });
-
-    return { basePrice, colorCharge, duplexDiscount, pageSizeCharge, bindingCharge, total, perPage, breakdown };
-};
-
-// Simulated payment processing
-const processPayment = async (method: string, upiId: string, amount: number): Promise<{ success: boolean; transactionId: string; message: string }> => {
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(() => resolve(undefined), 2500));
-
-    // 90% success rate for demo
-    const success = Math.random() > 0.1;
-
-    if (success) {
-        return {
-            success: true,
-            transactionId: `TXN${Date.now()}`,
-            message: 'Payment successful'
-        };
-    } else {
-        return {
-            success: false,
-            transactionId: '',
-            message: 'Payment failed. Please try again.'
-        };
-    }
-};
-
 interface PaymentScreenProps {
     navigation: any;
     route?: any;
@@ -106,18 +32,16 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
     const insets = useSafeAreaInsets();
     const dispatch = useDispatch();
 
-    const { document, settings } = route?.params || {
-        document: { name: 'Document.pdf', pages: 10 },
-        settings: { copies: 1, colorMode: 'bw', sides: 'single', totalPages: 10 },
-    };
+    const params = route?.params || {};
+    const { document, settings, printerId, printerName, pricing: initialPricing } = params;
 
     // States
     const [isLoadingPrice, setIsLoadingPrice] = useState(true);
-    const [pricing, setPricing] = useState<any>(null);
+    const [calculatedPricing, setCalculatedPricing] = useState<any>(null);
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
     const [upiId, setUpiId] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
-    const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
+    const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed' | 'timeout'>('idle');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [transactionId, setTransactionId] = useState<string | null>(null);
 
@@ -125,28 +49,70 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
     const successAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        loadPricing();
-    }, []);
+        calculateTotal();
+    }, [initialPricing, printerId]);
 
-    const loadPricing = async () => {
+    const calculateTotal = async () => {
         setIsLoadingPrice(true);
         try {
-            const price = await calculatePriceFromBackend(settings);
-            setPricing(price);
+            let printerPricing = initialPricing;
+
+            // If initialPricing is the already calculated pricing (has 'total' property)
+            // or if it's missing entirely but we have printerId
+            if ((!printerPricing || printerPricing.total !== undefined) && printerId) {
+                const result = await printerService.getPrinterDetails(printerId);
+                if (result.success && result.printer) {
+                    printerPricing = result.printer.pricing;
+                }
+            }
+
+            if (!printerPricing) {
+                // If we still don't have printer pricing config, use defaults or error
+                setCalculatedPricing({
+                    total: params.pricing?.total || 0,
+                    breakdown: [{ label: 'Estimated Total', amount: params.pricing?.total || 0 }]
+                });
+                return;
+            }
+
+            // If printerPricing is the config object from backend
+            if (printerPricing.price_bw_single !== undefined) {
+                const pages = settings.totalPages || 0;
+                const copies = settings.copies || 1;
+                const isColor = settings.colorMode === 'color';
+                const isDuplex = settings.sides === 'double';
+
+                let perPageRate = 0;
+                if (isColor) {
+                    perPageRate = isDuplex ? (printerPricing.price_color_duplex || printerPricing.price_color_single) : printerPricing.price_color_single;
+                } else {
+                    perPageRate = isDuplex ? (printerPricing.price_bw_duplex || printerPricing.price_bw_single) : printerPricing.price_bw_single;
+                }
+
+                // Safety fallback
+                if (!perPageRate) perPageRate = isColor ? 5 : 2;
+
+                const totalAmount = perPageRate * pages * copies;
+                setCalculatedPricing({
+                    total: totalAmount,
+                    breakdown: [
+                        {
+                            label: `${pages} pages × ${copies} copies @ ₹${perPageRate}/page`,
+                            amount: totalAmount
+                        }
+                    ]
+                });
+            } else if (printerPricing.total !== undefined) {
+                // It was already calculated
+                setCalculatedPricing(printerPricing);
+            }
+
         } catch (error) {
-            setErrorMsg('Failed to calculate price. Please try again.');
+            console.error('Pricing calculation error:', error);
+            setErrorMsg('Failed to calculate pricing. Please go back.');
         } finally {
             setIsLoadingPrice(false);
         }
-    };
-
-    const handleSelectMethod = (methodId: string) => {
-        setSelectedMethod(methodId);
-        // Auto-fill sample UPI for demo
-        if (methodId === 'gpay') setUpiId('user@okaxis');
-        else if (methodId === 'phonepe') setUpiId('user@ybl');
-        else if (methodId === 'paytm') setUpiId('user@paytm');
-        else setUpiId('');
     };
 
     const handlePayment = async () => {
@@ -155,61 +121,98 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
             return;
         }
 
-        if (!upiId.includes('@')) {
-            setErrorMsg('Please enter a valid UPI ID');
-            return;
-        }
-
         setIsProcessing(true);
         setPaymentStatus('processing');
 
         try {
-            const result = await processPayment(selectedMethod, upiId, pricing.total);
+            const token = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
+            // Generate a temporary job ID for tracing before registration if needed
+            // Or use a combination of user/timestamp
+            const tempJobId = `JOB_${Date.now()}`;
 
-            if (result.success) {
-                setPaymentStatus('success');
-                setTransactionId(result.transactionId);
+            // 1. Initiate Payment
+            const initiateRes = await paymentService.initiatePayment({
+                amount: calculatedPricing.total,
+                payment_method: 'upi',
+                payment_provider: selectedMethod,
+                upi_id: upiId,
+                print_job_id: tempJobId,
+                description: `Print: ${document?.name}`
+            }, token || undefined);
 
-                // Dispatch global job start
-                dispatch(startPrintJob({
-                    id: result.transactionId,
-                    documentName: document.name,
-                    totalAmount: pricing.total
-                }));
-
-                // Animate success
-                Animated.spring(successAnim, {
-                    toValue: 1,
-                    friction: 5,
-                    useNativeDriver: true,
-                }).start();
-
-                // Navigate to status after delay
-                // REPLACE stack so user can't go back to payment
-                setTimeout(() => {
-                    navigation.reset({
-                        index: 1,
-                        routes: [
-                            { name: 'MainTabs' },
-                            {
-                                name: 'JobStatus',
-                                params: {
-                                    document,
-                                    settings,
-                                    pricing,
-                                    transactionId: result.transactionId
-                                }
-                            },
-                        ],
-                    });
-                }, 2000);
-            } else {
-                setPaymentStatus('failed');
-                setErrorMsg(result.message);
+            if (!initiateRes.success) {
+                throw new Error(initiateRes.message || 'Failed to initiate payment');
             }
-        } catch (error) {
+
+            const txnId = initiateRes.transaction_id;
+            setTransactionId(txnId);
+
+            // 2. Process/Verify with 30s timeout
+            let isVerified = false;
+            const startTime = Date.now();
+            const TIMEOUT_SEC = 30;
+
+            // Simulate the processing call first (as per the curl example)
+            // In a real app, this might be triggered by the user completing the payment in their app
+            await paymentService.processPayment(txnId, token || undefined);
+
+            while (Date.now() - startTime < TIMEOUT_SEC * 1000) {
+                const verifyRes = await paymentService.verifyPayment(txnId, token || undefined);
+
+                if (verifyRes.success && verifyRes.status === 'success') {
+                    isVerified = true;
+                    break;
+                } else if (verifyRes.status === 'failed') {
+                    throw new Error(verifyRes.message || 'Payment failed');
+                }
+
+                // Wait 2 seconds before next poll
+                await new Promise(resolve => setTimeout(() => resolve(null), 2000));
+            }
+
+            if (!isVerified) {
+                setPaymentStatus('timeout');
+                setErrorMsg('Payment verification timed out. Please check your banking app.');
+                return;
+            }
+
+            // 3. Success Flow
+            setPaymentStatus('success');
+
+            // Dispatch global job start
+            dispatch(startPrintJob({
+                id: txnId,
+                documentName: document.name,
+                totalAmount: calculatedPricing.total
+            }));
+
+            // Animate success
+            Animated.spring(successAnim, {
+                toValue: 1, friction: 5, useNativeDriver: true,
+            }).start();
+
+            // Navigate to status after delay
+            setTimeout(() => {
+                navigation.reset({
+                    index: 1,
+                    routes: [
+                        { name: 'MainTabs' },
+                        {
+                            name: 'JobStatus',
+                            params: {
+                                document,
+                                settings,
+                                pricing: calculatedPricing,
+                                transactionId: txnId
+                            }
+                        },
+                    ],
+                });
+            }, 1500);
+
+        } catch (error: any) {
             setPaymentStatus('failed');
-            setErrorMsg('Payment failed. Please try again.');
+            setErrorMsg(error.message || 'An unexpected error occurred during payment');
         } finally {
             setIsProcessing(false);
         }
@@ -219,9 +222,7 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
         <Card style={styles.summaryCard}>
             <Card.Content>
                 <Skeleton height={20} width="40%" style={{ marginBottom: 16 }} />
-                <Skeleton height={16} width="100%" style={{ marginBottom: 12 }} />
-                <Skeleton height={16} width="100%" style={{ marginBottom: 12 }} />
-                <Skeleton height={16} width="80%" style={{ marginBottom: 16 }} />
+                <Skeleton height={60} width="100%" style={{ marginBottom: 12 }} />
                 <Divider style={{ marginVertical: 16 }} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <Skeleton height={24} width="30%" />
@@ -231,226 +232,118 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
         </Card>
     );
 
-    const renderProcessing = () => (
-        <View style={styles.processingOverlay}>
-            <View style={styles.processingCard}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text variant="titleMedium" style={{ marginTop: 16, fontWeight: 'bold' }}>
-                    Processing Payment...
-                </Text>
-                <Text variant="bodySmall" style={{ color: '#666', marginTop: 8, textAlign: 'center' }}>
-                    Please wait while we confirm your payment{'\n'}with {UPI_APPS.find(a => a.id === selectedMethod)?.name}
-                </Text>
-            </View>
-        </View>
-    );
-
-    const renderSuccess = () => (
-        <View style={styles.processingOverlay}>
-            <Animated.View style={[
-                styles.successCard,
-                {
-                    transform: [{ scale: successAnim }],
-                    opacity: successAnim,
-                }
-            ]}>
-                <View style={styles.successIcon}>
-                    <Icon name="check" size={48} color="white" />
-                </View>
-                <Text variant="headlineSmall" style={{ marginTop: 20, fontWeight: 'bold', color: '#2ECC71' }}>
-                    Payment Successful!
-                </Text>
-                <Text variant="bodyMedium" style={{ color: '#666', marginTop: 8 }}>
-                    Transaction ID: {transactionId}
-                </Text>
-                <Text variant="bodySmall" style={{ color: '#888', marginTop: 16 }}>
-                    Redirecting to print status...
-                </Text>
-            </Animated.View>
-        </View>
-    );
-
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
-            {/* Header */}
             <View style={styles.header}>
                 <IconButton icon="arrow-left" onPress={() => navigation.goBack()} />
                 <Text variant="titleLarge" style={{ fontWeight: 'bold' }}>Payment</Text>
                 <View style={{ width: 48 }} />
             </View>
 
-            <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <ScrollView
                     style={styles.content}
                     contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
-                    showsVerticalScrollIndicator={false}
                 >
-                    {/* Order Summary with Backend Pricing */}
-                    {isLoadingPrice ? renderPricingSkeleton() : pricing && (
+                    {/* Order Summary */}
+                    {isLoadingPrice ? renderPricingSkeleton() : (
                         <Card style={styles.summaryCard}>
                             <Card.Content>
                                 <Text variant="titleMedium" style={styles.sectionTitle}>Order Summary</Text>
-
+                                <View style={styles.row}>
+                                    <Text variant="bodyMedium">Printer</Text>
+                                    <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>{printerName || 'Selected Printer'}</Text>
+                                </View>
                                 <View style={styles.row}>
                                     <Text variant="bodyMedium">Document</Text>
-                                    <Text variant="bodyMedium" style={{ fontWeight: '500' }} numberOfLines={1}>
-                                        {document?.name}
-                                    </Text>
-                                </View>
-
-                                <View style={styles.row}>
-                                    <Text variant="bodyMedium">Print Type</Text>
-                                    <Text variant="bodyMedium">
-                                        {settings?.colorMode === 'color' ? 'Color' : 'Black & White'}
-                                    </Text>
-                                </View>
-
-                                <View style={styles.row}>
-                                    <Text variant="bodyMedium">Sides</Text>
-                                    <Text variant="bodyMedium">
-                                        {settings?.sides === 'double' ? 'Double-sided' : 'Single-sided'}
-                                    </Text>
+                                    <Text variant="bodyMedium" numberOfLines={1}>{document?.name}</Text>
                                 </View>
 
                                 <Divider style={{ marginVertical: 12 }} />
 
-                                {/* Price Breakdown */}
-                                <Text variant="labelMedium" style={{ color: '#888', marginBottom: 8 }}>
-                                    PRICE BREAKDOWN
-                                </Text>
-                                {pricing.breakdown.map((item: any, index: number) => (
+                                {calculatedPricing?.breakdown?.map((item: any, index: number) => (
                                     <View key={index} style={styles.breakdownRow}>
-                                        <Text variant="bodySmall" style={{ color: '#666', flex: 1 }}>
-                                            {item.label}
-                                        </Text>
-                                        <Text
-                                            variant="bodySmall"
-                                            style={{
-                                                fontWeight: '600',
-                                                color: item.amount < 0 ? '#2ECC71' : '#1A1A2E'
-                                            }}
-                                        >
-                                            {item.amount < 0 ? '-' : ''}₹{Math.abs(item.amount)}
-                                        </Text>
+                                        <Text variant="bodySmall" style={{ color: '#666', flex: 1 }}>{item.label}</Text>
+                                        <Text variant="bodySmall" style={{ fontWeight: 'bold' }}>₹{item.amount}</Text>
                                     </View>
                                 ))}
 
                                 <Divider style={{ marginVertical: 12 }} />
 
                                 <View style={styles.totalRow}>
-                                    <Text variant="titleLarge" style={{ fontWeight: 'bold' }}>Total</Text>
+                                    <Text variant="titleLarge" style={{ fontWeight: 'bold' }}>Total Amount</Text>
                                     <Text variant="headlineMedium" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
-                                        ₹{pricing.total}
+                                        ₹{calculatedPricing?.total || 0}
                                     </Text>
                                 </View>
                             </Card.Content>
                         </Card>
                     )}
 
-                    {/* UPI Payment Methods */}
+                    {/* UPI Selection */}
                     <Card style={styles.paymentCard}>
                         <Card.Content>
-                            <Text variant="titleMedium" style={styles.sectionTitle}>Pay with UPI</Text>
-
-                            {/* Popular Apps */}
-                            <Text variant="labelMedium" style={{ color: '#888', marginBottom: 12 }}>
-                                POPULAR APPS
-                            </Text>
-                            <View style={styles.appsGrid}>
-                                {UPI_APPS.filter(app => app.popular).map(app => (
-                                    <TouchableOpacity
-                                        key={app.id}
-                                        style={[
-                                            styles.appCard,
-                                            selectedMethod === app.id && styles.appCardSelected,
-                                            selectedMethod === app.id && { borderColor: app.color }
-                                        ]}
-                                        onPress={() => handleSelectMethod(app.id)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <View style={[styles.appIcon, { backgroundColor: app.color + '15' }]}>
-                                            <Icon name={app.icon} size={24} color={app.color} />
-                                        </View>
-                                        <Text variant="labelMedium" style={{ marginTop: 8, fontWeight: '600' }}>
-                                            {app.name}
-                                        </Text>
-                                        {selectedMethod === app.id && (
-                                            <View style={[styles.checkBadge, { backgroundColor: app.color }]}>
-                                                <Icon name="check" size={12} color="white" />
-                                            </View>
-                                        )}
-                                    </TouchableOpacity>
-                                ))}
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                <Text variant="titleMedium" style={[styles.sectionTitle, { marginBottom: 0 }]}>Pay with UPI</Text>
+                                <View style={styles.secureBadge}>
+                                    <Icon name="shield-check" size={14} color="#2ECC71" />
+                                    <Text style={styles.secureText}>Secure</Text>
+                                </View>
                             </View>
 
-                            {/* Other Apps */}
-                            <Text variant="labelMedium" style={{ color: '#888', marginTop: 16, marginBottom: 12 }}>
-                                OTHER UPI APPS
-                            </Text>
-                            <View style={styles.otherAppsRow}>
-                                {UPI_APPS.filter(app => !app.popular).map(app => (
-                                    <TouchableOpacity
-                                        key={app.id}
-                                        style={[
-                                            styles.otherAppBtn,
-                                            selectedMethod === app.id && styles.otherAppBtnSelected,
-                                        ]}
-                                        onPress={() => handleSelectMethod(app.id)}
-                                    >
-                                        <Icon name={app.icon} size={18} color={selectedMethod === app.id ? 'white' : app.color} />
-                                        <Text
-                                            variant="labelSmall"
-                                            style={{
-                                                marginLeft: 6,
-                                                color: selectedMethod === app.id ? 'white' : '#1A1A2E'
+                            <View style={styles.appsGrid}>
+                                {UPI_APPS.filter(app => app.popular).map(app => {
+                                    const isActive = selectedMethod === app.id;
+                                    return (
+                                        <TouchableOpacity
+                                            key={app.id}
+                                            activeOpacity={0.7}
+                                            style={[
+                                                styles.appCard,
+                                                isActive && { borderColor: app.color, backgroundColor: app.color + '05', borderWidth: 2 }
+                                            ]}
+                                            onPress={() => {
+                                                setSelectedMethod(app.id);
+                                                // Pre-fill some defaults if needed, or leave empty for user
+                                                if (upiId === '') setUpiId('user@' + app.id);
                                             }}
                                         >
-                                            {app.name}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
+                                            <View style={[styles.appIcon, { backgroundColor: app.color + '15' }]}>
+                                                <Icon name={app.icon} size={24} color={app.color} />
+                                            </View>
+                                            <Text variant="labelSmall" style={[styles.appText, isActive && { color: app.color, fontWeight: 'bold' }]}>
+                                                {app.name}
+                                            </Text>
+                                            {isActive && (
+                                                <View style={[styles.activeIndicator, { backgroundColor: app.color }]}>
+                                                    <Icon name="check" size={10} color="white" />
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
 
-                            {/* UPI ID Input */}
                             {selectedMethod && (
                                 <View style={styles.upiInputSection}>
-                                    <Text variant="labelMedium" style={{ color: '#888', marginBottom: 8 }}>
-                                        ENTER UPI ID
-                                    </Text>
-                                    <View style={styles.upiInputContainer}>
-                                        <Icon name="at" size={20} color="#888" style={{ marginRight: 8 }} />
+                                    <Text variant="labelMedium" style={{ marginBottom: 8, color: '#666' }}>Enter UPI ID</Text>
+                                    <View style={styles.inputContainer}>
                                         <TextInput
                                             style={styles.upiInput}
-                                            placeholder="username@upi"
-                                            placeholderTextColor="#999"
+                                            placeholder="e.g. user@bank"
                                             value={upiId}
                                             onChangeText={setUpiId}
-                                            keyboardType="email-address"
                                             autoCapitalize="none"
-                                            autoCorrect={false}
                                         />
-                                        {upiId.includes('@') && (
-                                            <Icon name="check-circle" size={20} color="#2ECC71" />
-                                        )}
+                                        <IconButton icon="close-circle" size={20} onPress={() => setUpiId('')} />
                                     </View>
-                                    <Text variant="bodySmall" style={{ color: '#888', marginTop: 8 }}>
-                                        A payment request will be sent to this UPI ID
+                                    <Text variant="bodySmall" style={{ color: '#888', marginTop: 4 }}>
+                                        You'll receive a payment request on your {UPI_APPS.find(a => a.id === selectedMethod)?.name} app.
                                     </Text>
                                 </View>
                             )}
                         </Card.Content>
                     </Card>
-
-                    {/* Security Info */}
-                    <View style={styles.securityInfo}>
-                        <Icon name="shield-check" size={16} color="#2ECC71" />
-                        <Text variant="bodySmall" style={{ color: '#666', marginLeft: 8 }}>
-                            100% Secure Payments powered by Razorpay
-                        </Text>
-                    </View>
                 </ScrollView>
             </KeyboardAvoidingView>
 
@@ -459,33 +352,85 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
                 <View>
                     <Text variant="bodySmall" style={{ color: '#666' }}>Amount to pay</Text>
                     <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
-                        ₹{pricing?.total || '--'}
+                        ₹{calculatedPricing?.total || '--'}
                     </Text>
                 </View>
                 <Button
                     mode="contained"
                     onPress={handlePayment}
-                    disabled={!selectedMethod || !upiId.includes('@') || isProcessing || isLoadingPrice}
+                    disabled={!selectedMethod || isProcessing || !upiId.trim()}
                     loading={isProcessing}
-                    style={{ paddingHorizontal: 24 }}
-                    contentStyle={{ height: 48 }}
+                    style={styles.payButton}
+                    contentStyle={{ height: 50 }}
                 >
-                    {isProcessing ? 'Processing...' : `Pay ₹${pricing?.total || '--'}`}
+                    Pay Now
                 </Button>
             </View>
 
             {/* Processing Overlay */}
-            {paymentStatus === 'processing' && renderProcessing()}
+            {isProcessing && (
+                <View style={styles.processingOverlay}>
+                    <Card style={styles.statusCard}>
+                        <ActivityIndicator size="large" color={theme.colors.primary} />
+                        <Text variant="titleMedium" style={{ marginTop: 20, fontWeight: 'bold' }}>Processing Payment</Text>
+                        <Text variant="bodyMedium" style={{ color: '#666', textAlign: 'center', marginTop: 8 }}>
+                            Please do not close the app or go back while we verify your transaction.
+                        </Text>
+                    </Card>
+                </View>
+            )}
 
-            {/* Success Overlay */}
-            {paymentStatus === 'success' && renderSuccess()}
+            {/* Success Animation */}
+            {paymentStatus === 'success' && (
+                <View style={styles.processingOverlay}>
+                    <Animated.View style={[
+                        styles.successCard,
+                        { transform: [{ scale: successAnim }], opacity: successAnim }
+                    ]}>
+                        <View style={styles.successIcon}><Icon name="check" size={48} color="white" /></View>
+                        <Text variant="headlineSmall" style={{ marginTop: 20, fontWeight: 'bold', color: '#2ECC71' }}>Success!</Text>
+                        <Text variant="bodyMedium" style={{ marginTop: 8 }}>Transaction ID: {transactionId}</Text>
+                        <Text variant="bodySmall" style={{ color: '#888', marginTop: 12 }}>Redirecting to job status...</Text>
+                    </Animated.View>
+                </View>
+            )}
 
-            {/* Error Snackbar */}
+            {/* Timeout / Failed Modal */}
+            {(paymentStatus === 'failed' || paymentStatus === 'timeout') && (
+                <View style={styles.processingOverlay}>
+                    <Card style={styles.statusCard}>
+                        <View style={[styles.errorIcon, { backgroundColor: paymentStatus === 'timeout' ? '#FF9800' : '#FF5252' }]}>
+                            <Icon name={paymentStatus === 'timeout' ? 'clock-outline' : 'close'} size={40} color="white" />
+                        </View>
+                        <Text variant="titleLarge" style={{ marginTop: 20, fontWeight: 'bold' }}>
+                            {paymentStatus === 'timeout' ? 'Payment Timeout' : 'Payment Failed'}
+                        </Text>
+                        <Text variant="bodyMedium" style={{ color: '#666', textAlign: 'center', marginTop: 8 }}>
+                            {errorMsg || 'Something went wrong.'}
+                        </Text>
+                        <Button
+                            mode="contained"
+                            style={{ marginTop: 24, width: '100%' }}
+                            onPress={() => setPaymentStatus('idle')}
+                        >
+                            Try Again
+                        </Button>
+                        <Button
+                            mode="text"
+                            style={{ marginTop: 8 }}
+                            onPress={() => navigation.goBack()}
+                        >
+                            Cancel
+                        </Button>
+                    </Card>
+                </View>
+            )}
+
             <Snackbar
-                visible={!!errorMsg}
+                visible={!!errorMsg && paymentStatus === 'idle'}
                 onDismiss={() => setErrorMsg(null)}
-                action={{ label: 'OK', onPress: () => setErrorMsg(null) }}
-                duration={3000}
+                duration={4000}
+                action={{ label: 'Dismiss', onPress: () => setErrorMsg(null) }}
             >
                 {errorMsg}
             </Snackbar>
@@ -495,166 +440,29 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F4F5F9' },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 8,
-        paddingVertical: 8,
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
-    },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#EEE' },
     content: { flex: 1, padding: 16 },
-    summaryCard: {
-        backgroundColor: 'white',
-        borderRadius: 16,
-        marginBottom: 16,
-        elevation: 2,
-    },
-    sectionTitle: {
-        fontWeight: 'bold',
-        marginBottom: 16,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-    },
-    breakdownRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 8,
-    },
-    totalRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    paymentCard: {
-        backgroundColor: 'white',
-        borderRadius: 16,
-        marginBottom: 16,
-        elevation: 2,
-    },
-    appsGrid: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    appCard: {
-        width: '31%',
-        backgroundColor: '#F8F9FA',
-        borderRadius: 12,
-        padding: 16,
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: 'transparent',
-        position: 'relative',
-    },
-    appCardSelected: {
-        backgroundColor: '#FFF',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    appIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    checkBadge: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    otherAppsRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    otherAppBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F0F0F0',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-    },
-    otherAppBtnSelected: {
-        backgroundColor: '#1A1A2E',
-    },
-    upiInputSection: {
-        marginTop: 20,
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
-    },
-    upiInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F8F9FA',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-    },
-    upiInput: {
-        flex: 1,
-        fontSize: 16,
-        color: '#1A1A2E',
-    },
-    securityInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-    },
-    bottomBar: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        backgroundColor: 'white',
-        borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
-    },
-    processingOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 100,
-    },
-    processingCard: {
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 32,
-        alignItems: 'center',
-        width: SCREEN_WIDTH - 64,
-    },
-    successCard: {
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 32,
-        alignItems: 'center',
-        width: SCREEN_WIDTH - 64,
-    },
-    successIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#2ECC71',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    summaryCard: { borderRadius: 20, marginBottom: 16, elevation: 2, backgroundColor: 'white' },
+    sectionTitle: { fontWeight: 'bold', marginBottom: 16, color: '#1A1A2E' },
+    row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+    breakdownRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+    paymentCard: { borderRadius: 20, marginBottom: 16, elevation: 2, backgroundColor: 'white' },
+    secureBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, gap: 4 },
+    secureText: { fontSize: 10, fontWeight: 'bold', color: '#2ECC71' },
+    appsGrid: { flexDirection: 'row', justifyContent: 'space-between' },
+    appCard: { width: '31%', backgroundColor: '#F8F9FA', borderRadius: 16, padding: 12, alignItems: 'center', position: 'relative', borderWidth: 2, borderColor: '#F0F0F0' },
+    appIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
+    appText: { fontSize: 11, color: '#666' },
+    activeIndicator: { position: 'absolute', top: -8, right: -8, width: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+    upiInputSection: { marginTop: 20, borderTopWidth: 1, borderTopColor: '#EEE', paddingTop: 20 },
+    inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', borderRadius: 12, borderWidth: 1, borderColor: '#E0E0E0' },
+    upiInput: { flex: 1, padding: 14, fontSize: 16, color: '#1A1A2E' },
+    bottomBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#E0E0E0', elevation: 20, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 10 },
+    payButton: { paddingHorizontal: 32, borderRadius: 12 },
+    processingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 100, padding: 20 },
+    statusCard: { backgroundColor: 'white', borderRadius: 24, padding: 24, alignItems: 'center', width: '100%', elevation: 10 },
+    successCard: { backgroundColor: 'white', borderRadius: 24, padding: 32, alignItems: 'center', width: SCREEN_WIDTH - 60 },
+    successIcon: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#2ECC71', justifyContent: 'center', alignItems: 'center' },
+    errorIcon: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center' },
 });

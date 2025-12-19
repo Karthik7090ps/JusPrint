@@ -1,5 +1,7 @@
+import NetInfo from '@react-native-community/netinfo';
+
 // API Configuration with Network Error Handling
-const API_CONFIG = {
+export const API_CONFIG = {
     BASE_URL: __DEV__
         ? 'http://192.168.1.8:8000'
         : 'https://your-backend-domain.com',
@@ -10,6 +12,17 @@ const API_CONFIG = {
             VERIFY_OTP: '/api/auth/verify-otp',
             REFRESH_TOKEN: '/api/auth/refresh',
             VERIFY_TOKEN: '/api/auth/verify-token',
+        },
+        PRINTERS: {
+            CAMPUSES: '/api/printers/campuses',
+            CAMPUS_PRINTERS: (code: string) => `/api/printers/campus/${code}/printers`,
+            PRINTER_DETAILS: (id: string) => `/api/printers/${id}`,
+        },
+        PAYMENT: {
+            INITIATE: '/api/payment/initiate',
+            PROCESS: '/api/payment/process',
+            VERIFY: (id: string) => `/api/payment/verify/${id}`,
+            HISTORY: '/api/payment/history',
         }
     },
 
@@ -84,6 +97,79 @@ export const getApiError = (error: any): ApiError => {
         userMessage: '❌ Something went wrong. Please try again.',
         technical: error.message,
     };
+};
+
+// Check network connectivity
+export const checkNetworkConnection = async (): Promise<boolean> => {
+    try {
+        const netInfo = await NetInfo.fetch();
+        return netInfo.isConnected === true;
+    } catch (error) {
+        console.warn('[Network Check] Failed to check connectivity:', error);
+        return true; // Assume connected if check fails
+    }
+};
+
+// HTTP Client Helper with Enhanced Error Handling
+export const apiRequest = async <T>(
+    endpoint: string,
+    method: 'GET' | 'POST' = 'POST',
+    body?: any,
+    token?: string
+): Promise<T> => {
+    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+
+    // Pre-flight network check
+    const isConnected = await checkNetworkConnection();
+    if (!isConnected) {
+        throw {
+            type: ApiErrorType.NETWORK_ERROR,
+            message: 'No internet connection',
+            userMessage: '📡 No internet connection. Please check your network.',
+        };
+    }
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+        console.log(`[API] ${method} ${url}`);
+
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
+
+        const response = await fetch(url, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : undefined,
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw {
+                status: response.status,
+                message: data.detail || data.error || 'Request failed',
+            };
+        }
+
+        return data as T;
+    } catch (error: any) {
+        console.error(`[API Error] ${method} ${url}:`, error);
+
+        // Convert to ApiError
+        const apiError = getApiError(error);
+        throw apiError;
+    }
 };
 
 export default API_CONFIG;

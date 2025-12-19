@@ -27,7 +27,7 @@ export const AppHeader = ({
     const theme = useTheme();
     const navigation = useNavigation<any>();
     const insets = useSafeAreaInsets();
-    const { name } = useSelector((state: RootState) => state.auth);
+    const { name, campusCode } = useSelector((state: RootState) => state.auth);
 
     const initials = getInitials(name);
     const avatarColor = getAvatarColor(name);
@@ -69,13 +69,20 @@ export const AppHeader = ({
                     )}
                 </View>
 
-                {/* Profile Button Only */}
-                <TouchableOpacity
-                    style={[styles.profileBtn, { backgroundColor: avatarColor }]}
-                    onPress={() => navigation.navigate('Settings')}
-                >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{initials}</Text>
-                </TouchableOpacity>
+                {/* Profile Section with Campus Code */}
+                <View style={styles.rightSection}>
+                    {campusCode && (
+                        <View style={[styles.campusBadge, { backgroundColor: theme.colors.primary + '15' }]}>
+                            <Text style={[styles.campusCode, { color: theme.colors.primary }]}>{campusCode}</Text>
+                        </View>
+                    )}
+                    <TouchableOpacity
+                        style={[styles.profileBtn, { backgroundColor: avatarColor }]}
+                        onPress={() => navigation.navigate('Settings')}
+                    >
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>{initials}</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -137,5 +144,22 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.2,
         shadowRadius: 2,
+    },
+    rightSection: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    campusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
+    },
+    campusCode: {
+        fontSize: 12,
+        fontWeight: '900',
+        textTransform: 'uppercase',
     },
 });

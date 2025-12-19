@@ -51,7 +51,7 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
     const insets = useSafeAreaInsets();
     const existingDoc = route?.params?.document;
     const presetSettings = route?.params?.presetSettings;
-    const initialPrinter = route?.params?.printer;
+    const initialPrinter = route?.params?.selectedPrinter;
 
     const [document, setDocument] = useState<any>(existingDoc || null);
     const [selectedPrinter, setSelectedPrinter] = useState<any>(initialPrinter || null);
@@ -148,7 +148,13 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
     };
 
     const handleProceed = () => {
-        navigation.navigate('PaymentScreen', { document, settings, pricing, printer: selectedPrinter });
+        navigation.navigate('PaymentScreen', {
+            document,
+            settings,
+            pricing: selectedPrinter?.pricing || pricing,
+            printerId: selectedPrinter?.id,
+            printerName: selectedPrinter?.name || selectedPrinter?.location
+        });
     };
 
     return (
@@ -296,124 +302,166 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                 {/* Settings Section */}
                 {document && (
                     <View style={styles.settingsSection}>
-                        <SegmentedButtons
-                            value={activeTab}
-                            onValueChange={setActiveTab}
-                            buttons={[
-                                { value: 'basic', label: 'Basic' },
-                                { value: 'advanced', label: 'Advanced' },
-                            ]}
-                            style={styles.tabs}
-                        />
+                        {/* Premium Tab Selector */}
+                        <View style={styles.tabContainer}>
+                            <TouchableOpacity
+                                style={[styles.tabItem, activeTab === 'basic' && styles.tabItemActive]}
+                                onPress={() => setActiveTab('basic')}
+                            >
+                                <Icon name="tune-variant" size={20} color={activeTab === 'basic' ? 'white' : '#666'} />
+                                <Text style={[styles.tabText, activeTab === 'basic' && styles.tabTextActive]}>Basic Config</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.tabItem, activeTab === 'advanced' && styles.tabItemActive]}
+                                onPress={() => setActiveTab('advanced')}
+                            >
+                                <Icon name="plus-circle-outline" size={20} color={activeTab === 'advanced' ? 'white' : '#666'} />
+                                <Text style={[styles.tabText, activeTab === 'advanced' && styles.tabTextActive]}>Advanced</Text>
+                            </TouchableOpacity>
+                        </View>
 
                         {activeTab === 'basic' ? (
                             <View style={styles.settingsGrid}>
-                                {/* Color Mode */}
-                                <View style={styles.settingRow}>
-                                    <Text variant="bodyMedium">Print Type</Text>
-                                    <View style={styles.optionButtons}>
+                                {/* Color Mode Card */}
+                                <View style={styles.settingCard}>
+                                    <View style={styles.settingHeader}>
+                                        <View style={[styles.cardIconBox, { backgroundColor: '#E3F2FD' }]}>
+                                            <Icon name="palette-outline" size={22} color="#1976D2" />
+                                        </View>
+                                        <View>
+                                            <Text variant="titleMedium" style={styles.cardTitle}>Color Mode</Text>
+                                            <Text variant="bodySmall" style={styles.cardSubtitle}>Select printing color</Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.optionRow}>
                                         <TouchableOpacity
-                                            style={[styles.optionBtn, settings.colorMode === 'bw' && styles.optionBtnActive]}
+                                            style={[styles.tile, settings.colorMode === 'bw' && styles.tileActive]}
                                             onPress={() => updateSetting('colorMode', 'bw')}
                                         >
-                                            <Text style={settings.colorMode === 'bw' ? styles.optionTextActive : styles.optionText}>B&W</Text>
+                                            <Icon name="circle-half-full" size={20} color={settings.colorMode === 'bw' ? 'white' : '#666'} />
+                                            <Text style={[styles.tileText, settings.colorMode === 'bw' && styles.tileTextActive]}>Black & White</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={[styles.optionBtn, settings.colorMode === 'color' && styles.optionBtnActive]}
+                                            style={[styles.tile, settings.colorMode === 'color' && styles.tileActive]}
                                             onPress={() => updateSetting('colorMode', 'color')}
                                         >
-                                            <Text style={settings.colorMode === 'color' ? styles.optionTextActive : styles.optionText}>Color</Text>
+                                            <Icon name="palette" size={20} color={settings.colorMode === 'color' ? 'white' : '#666'} />
+                                            <Text style={[styles.tileText, settings.colorMode === 'color' && styles.tileTextActive]}>Full Color</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
 
-                                {/* Sides */}
-                                <View style={styles.settingRow}>
-                                    <Text variant="bodyMedium">Sides</Text>
-                                    <View style={styles.optionButtons}>
+                                {/* Paper Sides Card */}
+                                <View style={styles.settingCard}>
+                                    <View style={styles.settingHeader}>
+                                        <View style={[styles.cardIconBox, { backgroundColor: '#F3E5F5' }]}>
+                                            <Icon name="book-open-outline" size={22} color="#9C27B0" />
+                                        </View>
+                                        <View>
+                                            <Text variant="titleMedium" style={styles.cardTitle}>Print Sides</Text>
+                                            <Text variant="bodySmall" style={styles.cardSubtitle}>Single or Double sided</Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.optionRow}>
                                         <TouchableOpacity
-                                            style={[styles.optionBtn, settings.sides === 'single' && styles.optionBtnActive]}
+                                            style={[styles.tile, settings.sides === 'single' && styles.tileActive]}
                                             onPress={() => updateSetting('sides', 'single')}
                                         >
-                                            <Text style={settings.sides === 'single' ? styles.optionTextActive : styles.optionText}>Single</Text>
+                                            <Icon name="file-outline" size={20} color={settings.sides === 'single' ? 'white' : '#666'} />
+                                            <Text style={[styles.tileText, settings.sides === 'single' && styles.tileTextActive]}>One Side</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={[styles.optionBtn, settings.sides === 'double' && styles.optionBtnActive]}
+                                            style={[styles.tile, settings.sides === 'double' && styles.tileActive]}
                                             onPress={() => updateSetting('sides', 'double')}
                                         >
-                                            <Text style={settings.sides === 'double' ? styles.optionTextActive : styles.optionText}>Double</Text>
+                                            <Icon name="file-multiple" size={20} color={settings.sides === 'double' ? 'white' : '#666'} />
+                                            <Text style={[styles.tileText, settings.sides === 'double' && styles.tileTextActive]}>Both Sides</Text>
                                         </TouchableOpacity>
                                     </View>
+                                    {settings.sides === 'double' && (
+                                        <Text variant="labelSmall" style={styles.discountTag}>✨ 20% Discount applied for Duplex!</Text>
+                                    )}
                                 </View>
 
-                                {/* Copies */}
-                                <View style={styles.settingRow}>
-                                    <Text variant="bodyMedium">Copies</Text>
-                                    <View style={styles.quantityControl}>
-                                        <TouchableOpacity
-                                            style={styles.qtyBtn}
-                                            onPress={() => updateSetting('copies', Math.max(1, settings.copies - 1))}
-                                        >
-                                            <Icon name="minus" size={18} />
-                                        </TouchableOpacity>
-                                        <Text variant="titleMedium" style={{ minWidth: 30, textAlign: 'center' }}>{settings.copies}</Text>
-                                        <TouchableOpacity
-                                            style={styles.qtyBtn}
-                                            onPress={() => updateSetting('copies', settings.copies + 1)}
-                                        >
-                                            <Icon name="plus" size={18} />
-                                        </TouchableOpacity>
+                                {/* Copies Stepper */}
+                                <View style={styles.settingCard}>
+                                    <View style={styles.settingHeader}>
+                                        <View style={[styles.cardIconBox, { backgroundColor: '#FFF3E0' }]}>
+                                            <Icon name="content-copy" size={22} color="#EF6C00" />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text variant="titleMedium" style={styles.cardTitle}>Copies</Text>
+                                            <Text variant="bodySmall" style={styles.cardSubtitle}>Number of print sets</Text>
+                                        </View>
+                                        <View style={styles.stepperContainer}>
+                                            <TouchableOpacity
+                                                style={styles.stepBtn}
+                                                onPress={() => updateSetting('copies', Math.max(1, settings.copies - 1))}
+                                            >
+                                                <Icon name="minus" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                            <Text variant="titleLarge" style={styles.stepValue}>{settings.copies}</Text>
+                                            <TouchableOpacity
+                                                style={styles.stepBtn}
+                                                onPress={() => updateSetting('copies', settings.copies + 1)}
+                                            >
+                                                <Icon name="plus" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
                                 </View>
                             </View>
                         ) : (
                             <View style={styles.settingsGrid}>
-                                {/* Orientation */}
-                                <View style={styles.settingRow}>
-                                    <Text variant="bodyMedium">Orientation</Text>
-                                    <View style={styles.optionButtons}>
+                                {/* Layout Orientation */}
+                                <View style={styles.settingCard}>
+                                    <Text variant="labelSmall" style={styles.compactLabel}>PAGE ORIENTATION</Text>
+                                    <View style={styles.optionRow}>
                                         <TouchableOpacity
-                                            style={[styles.optionBtn, settings.orientation === 'portrait' && styles.optionBtnActive]}
+                                            style={[styles.compactTile, settings.orientation === 'portrait' && styles.tileActive]}
                                             onPress={() => updateSetting('orientation', 'portrait')}
                                         >
-                                            <Text style={settings.orientation === 'portrait' ? styles.optionTextActive : styles.optionText}>Portrait</Text>
+                                            <Icon name="crop-portrait" size={18} color={settings.orientation === 'portrait' ? 'white' : '#666'} />
+                                            <Text style={[styles.compactTileText, settings.orientation === 'portrait' && styles.tileTextActive]}>Portrait</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={[styles.optionBtn, settings.orientation === 'landscape' && styles.optionBtnActive]}
+                                            style={[styles.compactTile, settings.orientation === 'landscape' && styles.tileActive]}
                                             onPress={() => updateSetting('orientation', 'landscape')}
                                         >
-                                            <Text style={settings.orientation === 'landscape' ? styles.optionTextActive : styles.optionText}>Landscape</Text>
+                                            <Icon name="crop-landscape" size={18} color={settings.orientation === 'landscape' ? 'white' : '#666'} />
+                                            <Text style={[styles.compactTileText, settings.orientation === 'landscape' && styles.tileTextActive]}>Landscape</Text>
                                         </TouchableOpacity>
                                     </View>
+                                </View>
+
+                                {/* Paper Size */}
+                                <View style={styles.settingCard}>
+                                    <Text variant="labelSmall" style={styles.compactLabel}>PAPER SIZE</Text>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollOptions}>
+                                        {['A4', 'A3', 'A5', 'Letter', 'Legal'].map(size => (
+                                            <TouchableOpacity
+                                                key={size}
+                                                style={[styles.sizeTile, settings.pageSize === size && styles.activeSizeTile]}
+                                                onPress={() => updateSetting('pageSize', size)}
+                                            >
+                                                <Text style={[styles.sizeTileText, settings.pageSize === size && styles.activeSizeTileText]}>{size}</Text>
+                                                {settings.pageSize === size && <Icon name="check-circle" size={14} color="white" style={styles.checkIcon} />}
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
                                 </View>
 
                                 {/* Pages Per Sheet */}
-                                <View style={styles.settingRow}>
-                                    <Text variant="bodyMedium">Pages/Sheet</Text>
-                                    <View style={styles.optionButtons}>
-                                        {[1, 2, 4].map(n => (
+                                <View style={styles.settingCard}>
+                                    <Text variant="labelSmall" style={styles.compactLabel}>PAGES PER SHEET</Text>
+                                    <View style={styles.optionRow}>
+                                        {[1, 2, 4, 6, 9].map(n => (
                                             <TouchableOpacity
                                                 key={n}
-                                                style={[styles.optionBtn, settings.pagesPerSheet === n && styles.optionBtnActive, { minWidth: 40 }]}
+                                                style={[styles.nUpTile, settings.pagesPerSheet === n && styles.tileActive]}
                                                 onPress={() => updateSetting('pagesPerSheet', n)}
                                             >
-                                                <Text style={settings.pagesPerSheet === n ? styles.optionTextActive : styles.optionText}>{n}</Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </View>
-                                </View>
-
-                                {/* Page Size */}
-                                <View style={styles.settingRow}>
-                                    <Text variant="bodyMedium">Page Size</Text>
-                                    <View style={styles.optionButtons}>
-                                        {['A4', 'A3', 'Letter'].map(size => (
-                                            <TouchableOpacity
-                                                key={size}
-                                                style={[styles.optionBtn, settings.pageSize === size && styles.optionBtnActive]}
-                                                onPress={() => updateSetting('pageSize', size)}
-                                            >
-                                                <Text style={settings.pageSize === size ? styles.optionTextActive : styles.optionText}>{size}</Text>
+                                                <Text style={[styles.nUpText, settings.pagesPerSheet === n && styles.tileTextActive]}>{n}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
@@ -552,43 +600,193 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F4F5F9' },
     content: { flex: 1, padding: 16 },
     // ... existing styles ...
-    settingsSection: { flex: 1 },
-    tabs: { marginBottom: 16 },
-    settingsGrid: { gap: 12 },
-    settingRow: {
+    settingsSection: { marginTop: 16 },
+    tabContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: 'white',
-        padding: 14,
-        borderRadius: 12,
+        backgroundColor: '#E0E0E0',
+        borderRadius: 16,
+        padding: 4,
+        marginBottom: 20,
     },
-    optionButtons: {
+    tabItem: {
+        flex: 1,
         flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        borderRadius: 12,
         gap: 8,
     },
-    optionBtn: {
-        paddingHorizontal: 14,
-        paddingVertical: 8,
+    tabItemActive: {
+        backgroundColor: '#1A1A2E',
+    },
+    tabText: {
+        fontWeight: 'bold',
+        color: '#666',
+        fontSize: 14,
+    },
+    tabTextActive: {
+        color: 'white',
+    },
+    settingsGrid: {
+        gap: 16,
+    },
+    settingCard: {
+        backgroundColor: 'white',
         borderRadius: 20,
-        backgroundColor: '#F0F0F0',
+        padding: 16,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
-    optionBtnActive: {
-        backgroundColor: '#FF6B35',
-    },
-    optionText: { color: '#666', fontWeight: '500' },
-    optionTextActive: { color: 'white', fontWeight: 'bold' },
-    quantityControl: {
+    settingHeader: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 12,
     },
-    qtyBtn: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#F0F0F0',
+    cardIconBox: {
+        width: 44,
+        height: 44,
+        borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    cardTitle: {
+        fontWeight: 'bold',
+        color: '#1A1A2E',
+    },
+    cardSubtitle: {
+        color: '#888',
+    },
+    optionRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 16,
+    },
+    tile: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: 12,
+        backgroundColor: '#F5F6FA',
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        gap: 8,
+    },
+    tileActive: {
+        backgroundColor: '#FF6B35',
+        borderColor: '#FF6B35',
+    },
+    tileText: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: '#666',
+    },
+    tileTextActive: {
+        color: 'white',
+    },
+    discountTag: {
+        marginTop: 12,
+        color: '#2ECC71',
+        fontWeight: 'bold',
+        fontSize: 11,
+        textAlign: 'center',
+        backgroundColor: '#E8F5E9',
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    stepperContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F6FA',
+        borderRadius: 12,
+        padding: 4,
+    },
+    stepBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 1,
+    },
+    stepValue: {
+        minWidth: 44,
+        textAlign: 'center',
+        fontWeight: 'bold',
+    },
+    compactLabel: {
+        color: '#888',
+        fontWeight: 'bold',
+        fontSize: 10,
+        letterSpacing: 1,
+        marginBottom: 10,
+    },
+    compactTile: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        borderRadius: 10,
+        backgroundColor: '#F5F6FA',
+        gap: 6,
+    },
+    compactTileText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#666',
+    },
+    scrollOptions: {
+        gap: 8,
+        paddingBottom: 4,
+    },
+    sizeTile: {
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 10,
+        backgroundColor: '#F5F6FA',
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        minWidth: 70,
+        alignItems: 'center',
+        position: 'relative',
+    },
+    activeSizeTile: {
+        backgroundColor: '#1A1A2E',
+        borderColor: '#1A1A2E',
+    },
+    sizeTileText: {
+        fontWeight: 'bold',
+        color: '#666',
+    },
+    activeSizeTileText: {
+        color: 'white',
+    },
+    checkIcon: {
+        position: 'absolute',
+        top: -4,
+        right: -4,
+        backgroundColor: '#2ECC71',
+        borderRadius: 10,
+    },
+    nUpTile: {
+        width: 44,
+        height: 44,
+        borderRadius: 10,
+        backgroundColor: '#F5F6FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    nUpText: {
+        fontWeight: 'bold',
+        color: '#666',
     },
     bottomBar: {
         flexDirection: 'row',
@@ -598,6 +796,22 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderTopWidth: 1,
         borderTopColor: '#E0E0E0',
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    // Keep internal legacy styles if needed by other components
+    settingRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
     },
     printerBar: {
         flexDirection: 'row',
@@ -630,8 +844,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         gap: 2,
     },
-
-    // Preview Card Styles
     previewSection: { alignItems: 'center', marginBottom: 16 },
     previewCard: {
         backgroundColor: 'white',
@@ -701,8 +913,6 @@ const styles = StyleSheet.create({
         borderColor: '#E0E0E0',
         width: '100%',
     },
-
-    // Modal Styles
     modalContainer: {
         flex: 1,
         backgroundColor: 'white',

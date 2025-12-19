@@ -77,5 +77,7 @@ export const STORAGE_KEYS = {
     ACCESS_TOKEN: 'jusprint_access_token',
     USER_ID: 'jusprint_user_id',
     USER_NAME: 'jusprint_user_name',
+    CAMPUS_CODE: 'jusprint_campus_code',
+    CAMPUS_NAME: 'jusprint_campus_name',
     SESSION_NONCE: 'jusprint_session_nonce',
 } as const;

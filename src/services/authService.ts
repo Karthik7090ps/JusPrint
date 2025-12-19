@@ -1,6 +1,5 @@
 import { setSecureItem, STORAGE_KEYS } from '../utils/secureStorage';
-import API_CONFIG, { getApiError, ApiError, ApiErrorType } from '../config/api';
-import NetInfo from '@react-native-community/netinfo';
+import API_CONFIG, { apiRequest, ApiErrorType } from '../config/api';
 
 export interface AuthResponse {
     success: boolean;
@@ -11,79 +10,6 @@ export interface AuthResponse {
     error?: string;
     errorType?: ApiErrorType;
 }
-
-// Check network connectivity
-const checkNetworkConnection = async (): Promise<boolean> => {
-    try {
-        const netInfo = await NetInfo.fetch();
-        return netInfo.isConnected === true;
-    } catch (error) {
-        console.warn('[Network Check] Failed to check connectivity:', error);
-        return true; // Assume connected if check fails
-    }
-};
-
-// HTTP Client Helper with Enhanced Error Handling
-const apiRequest = async <T>(
-    endpoint: string,
-    method: 'GET' | 'POST' = 'POST',
-    body?: any,
-    token?: string
-): Promise<T> => {
-    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-
-    // Pre-flight network check
-    const isConnected = await checkNetworkConnection();
-    if (!isConnected) {
-        throw {
-            type: ApiErrorType.NETWORK_ERROR,
-            message: 'No internet connection',
-            userMessage: '📡 No internet connection. Please check your network.',
-        };
-    }
-
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-    };
-
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    try {
-        console.log(`[API] ${method} ${url}`);
-
-        // Create abort controller for timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-
-        const response = await fetch(url, {
-            method,
-            headers,
-            body: body ? JSON.stringify(body) : undefined,
-            signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw {
-                status: response.status,
-                message: data.detail || data.error || 'Request failed',
-            };
-        }
-
-        return data as T;
-    } catch (error: any) {
-        console.error(`[API Error] ${method} ${url}:`, error);
-
-        // Convert to ApiError
-        const apiError = getApiError(error);
-        throw apiError;
-    }
-};
 
 // Retry configuration
 const RETRY_CONFIG = {
@@ -227,6 +153,22 @@ export const authService = {
         } catch (error: any) {
             console.log('[AUTH_SERVICE] Token verification failed:', error.message || 'Unknown error');
             return { success: false };
+        }
+    },
+
+    /**
+     * Get list of all campuses
+     */
+    getCampuses: async (): Promise<{ success: boolean; campuses: any[] }> => {
+        try {
+            const response = await apiRequest<{ success: boolean; campuses: any[] }>(
+                API_CONFIG.ENDPOINTS.PRINTERS.CAMPUSES,
+                'GET'
+            );
+            return response;
+        } catch (error: any) {
+            console.error('[AUTH_SERVICE] Failed to fetch campuses:', error);
+            return { success: false, campuses: [] };
         }
     },
 };

@@ -202,7 +202,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
     };
 
     const handleUpload = () => {
-        navigation.navigate('DocumentUpload', { printer: selectedPrinter });
+        navigation.navigate('DocumentUpload', { selectedPrinter: selectedPrinter });
     };
 
     const handleCardAction = (card: any) => {
@@ -276,7 +276,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
                         <View style={styles.printerSelector}>
                             <TouchableOpacity
                                 style={styles.printerRow}
-                                onPress={() => navigation.navigate('PrinterSelection')}
+                                onPress={() => navigation.navigate('PrinterSelection', { returnRoute: 'Print' })}
                             >
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                                     <Icon name="printer" size={16} color="rgba(255,255,255,0.8)" />
@@ -306,7 +306,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
                             onPress={() => {
                                 if (action.id === 'scan') console.log('Scan');
                                 if (action.id === 'history') navigation.navigate('JobStatus');
-                                if (action.id === 'printers') navigation.navigate('PrinterSelection');
+                                if (action.id === 'printers') navigation.navigate('PrinterSelection', { returnRoute: 'Print' });
                                 if (action.id === 'help') console.log('Help');
                             }}
                             activeOpacity={0.7}
