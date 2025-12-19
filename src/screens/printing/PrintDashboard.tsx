@@ -10,24 +10,11 @@ import { Skeleton, SkeletonCarousel, SkeletonListItem } from '../../components/c
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { PrintStatusWidget } from '../../components/printing/PrintStatusWidget';
+import { printerService } from '../../services/printerService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 64;
 const CARD_SPACING = 12;
-
-// Mock data functions...
-const fetchLastUsedPrinter = async () => {
-    await new Promise(resolve => setTimeout(() => resolve(undefined), 800));
-    return {
-        id: 'p1',
-        name: 'Hp LaserJet Pro',
-        location: 'Library – Ground Floor',
-        status: 'Online',
-        wait: '~2 min wait',
-        isOnline: true,
-        queueLength: 3,
-    };
-};
 
 const fetchRecentPrints = async () => {
     await new Promise(resolve => setTimeout(() => resolve(undefined), 600));
@@ -66,12 +53,13 @@ const generateSmartCards = (user: any, printer: any, recentPrints: any[]) => {
     }
 
     const hour = new Date().getHours();
-    if (printer?.queueLength > 5 && hour >= 9 && hour <= 17) {
+    const queueCount = printer?.status?.queue_count || 0;
+    if (queueCount > 5 && hour >= 9 && hour <= 17) {
         cards.push({
             id: 'traffic',
             type: 'alert',
             title: 'High Traffic Alert',
-            subtitle: `${printer.queueLength} jobs ahead • Try nearby printers`,
+            subtitle: `${queueCount} jobs ahead • Try nearby printers`,
             icon: 'alert-circle',
             gradient: ['#FF9F43', '#EE8629'],
             action: 'find_printer',
@@ -119,6 +107,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
     const theme = useTheme();
     const insets = useSafeAreaInsets();
     const { activeJob } = useSelector((state: RootState) => state.print);
+    const { campusCode } = useSelector((state: RootState) => state.auth);
 
     // Data states
     const [selectedPrinter, setSelectedPrinter] = useState<any>(null);
@@ -187,13 +176,21 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
     const loadData = async () => {
         setIsLoading(true);
         try {
-            const [ads, printer, prints] = await Promise.all([
+            const [ads, prints] = await Promise.all([
                 fetchHomeConfig(),
-                fetchLastUsedPrinter(),
                 fetchRecentPrints(),
             ]);
-            if (!selectedPrinter) setSelectedPrinter(printer);
+
             setRecentPrints(prints);
+
+            // Fetch real printers for the campus
+            if (campusCode) {
+                const res = await printerService.getPrintersByCampus(campusCode);
+                if (res.success && res.printers.length > 0) {
+                    // Just pick the first one for now as "last used"
+                    if (!selectedPrinter) setSelectedPrinter(res.printers[0]);
+                }
+            }
         } catch (error) {
             console.error('Failed to load data:', error);
         } finally {
@@ -285,7 +282,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
                                             {selectedPrinter?.location || 'Select Printer'}
                                         </Text>
                                         <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>
-                                            {selectedPrinter?.name || 'Tap to select'} • {selectedPrinter?.status || 'Offline'}
+                                            {selectedPrinter?.name || 'Tap to select'} • {selectedPrinter?.status?.status || 'Offline'}
                                         </Text>
                                     </View>
                                 </View>

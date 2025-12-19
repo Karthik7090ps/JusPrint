@@ -97,8 +97,9 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
                     total: totalAmount,
                     breakdown: [
                         {
-                            label: `${pages} pages × ${copies} copies @ ₹${perPageRate}/page`,
-                            amount: totalAmount
+                            label: copies > 1 ? `${pages} pages × ${copies} copies` : `${pages} pages`,
+                            amount: totalAmount,
+                            note: `₹${perPageRate}/page`
                         }
                     ]
                 });
@@ -263,7 +264,10 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
 
                                 {calculatedPricing?.breakdown?.map((item: any, index: number) => (
                                     <View key={index} style={styles.breakdownRow}>
-                                        <Text variant="bodySmall" style={{ color: '#666', flex: 1 }}>{item.label}</Text>
+                                        <View style={{ flex: 1 }}>
+                                            <Text variant="bodySmall" style={{ color: '#666' }}>{item.label}</Text>
+                                            {item.note && <Text variant="labelSmall" style={{ color: '#999', fontSize: 10 }}>{item.note}</Text>}
+                                        </View>
                                         <Text variant="bodySmall" style={{ fontWeight: 'bold' }}>₹{item.amount}</Text>
                                     </View>
                                 ))}

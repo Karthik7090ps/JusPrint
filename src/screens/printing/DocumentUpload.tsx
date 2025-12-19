@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Modal, Image } from 'react-native';
-import { Text, Button, Card, useTheme, SegmentedButtons, Chip, Snackbar, ActivityIndicator, IconButton } from 'react-native-paper';
+import { Text, Button, Card, useTheme, SegmentedButtons, Chip, Snackbar, ActivityIndicator, IconButton, Divider } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppHeader } from '../../components/common/AppHeader';
 import { pick, types } from '@react-native-documents/picker';
 import { Skeleton } from '../../components/common/Skeleton';
 import Pdf from 'react-native-pdf';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import { printerService, Printer } from '../../services/printerService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -18,32 +20,50 @@ const getFileType = (name: string, type?: string) => {
     return 'other';
 };
 
-// Backend pricing service (simulated)
-const fetchPricingFromBackend = async (settings: any): Promise<{
-    perPage: number;
-    total: number;
-    currency: string;
-    isLoading?: boolean;
-}> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(() => resolve(undefined), 500));
+// Utility to calculate real pricing based on printer config
+const calculateRealPrice = (settings: any, printer: Printer | null) => {
+    if (!settings?.totalPages || settings.totalPages === 0) {
+        return { perPage: 0, total: 0, breakdown: [] };
+    }
 
-    const pages = settings.totalPages || 10;
+    const pages = settings.totalPages;
     const copies = settings.copies || 1;
+    let rate = 0;
+    let type = '';
 
-    // Base pricing from backend
-    const bwRate = 2;
-    const colorRate = settings.colorMode === 'color' ? 5 : 2;
+    if (printer?.pricing) {
+        if (settings.colorMode === 'color') {
+            rate = settings.sides === 'double' ? printer.pricing.price_color_duplex : printer.pricing.price_color_single;
+            type = `Color (${settings.sides === 'double' ? 'Duplex' : 'Simplex'})`;
+        } else {
+            rate = settings.sides === 'double' ? printer.pricing.price_bw_duplex : printer.pricing.price_bw_single;
+            type = `B&W (${settings.sides === 'double' ? 'Duplex' : 'Simplex'})`;
+        }
+    } else {
+        // Fallback to demo pricing
+        rate = settings.colorMode === 'color' ? 5 : 2;
+        if (settings.sides === 'double') rate *= 0.8;
+        type = 'Standard Rate';
+    }
 
-    const sideMultiplier = settings.sides === 'double' ? 0.8 : 1;
+    const total = Math.round(rate * pages * copies * 100) / 100;
 
-    let pageSizeMultiplier = 1;
-    if (settings.pageSize === 'A3') pageSizeMultiplier = 1.5;
+    const breakdown = [
+        { label: 'Print Mode', value: type },
+        { label: 'Unit Rate', value: `₹${rate.toFixed(2)}` },
+        { label: 'Pages', value: `${pages} ${pages === 1 ? 'page' : 'pages'}` }
+    ];
 
-    const perPage = Math.round(colorRate * sideMultiplier * pageSizeMultiplier * 100) / 100;
-    const total = Math.round(perPage * pages * copies);
+    if (copies > 1) {
+        breakdown.push({ label: 'Copies', value: `× ${copies}` });
+    }
 
-    return { perPage, total, currency: '₹' };
+    return {
+        perPage: rate,
+        total,
+        currency: '₹',
+        breakdown
+    };
 };
 
 export const DocumentUpload = ({ navigation, route }: { navigation: any; route?: any }) => {
@@ -55,11 +75,14 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
 
     const [document, setDocument] = useState<any>(existingDoc || null);
     const [selectedPrinter, setSelectedPrinter] = useState<any>(initialPrinter || null);
+    const [printerDetails, setPrinterDetails] = useState<Printer | null>(null);
     const [activeTab, setActiveTab] = useState('basic');
-    const [pricing, setPricing] = useState({ perPage: 2, total: 0, currency: '₹' });
+    const [pricing, setPricing] = useState<any>({ perPage: 2, total: 0, currency: '₹', breakdown: [] });
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const [isPricingLoading, setIsPricingLoading] = useState(false);
+    const [isPrinterLoading, setIsPrinterLoading] = useState(false);
+    const [isDetectingPages, setIsDetectingPages] = useState(false);
 
     // Preview Modal State
     const [isPreviewVisible, setIsPreviewVisible] = useState(false);
@@ -71,7 +94,7 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         orientation: 'portrait',
         pageSize: 'A4',
         pagesPerSheet: 1,
-        totalPages: existingDoc?.pages || 10,
+        totalPages: existingDoc?.pages || 0,
         binding: false,
         ...presetSettings
     });
@@ -95,22 +118,34 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         }
     }, [route?.params?.selectedPrinter]);
 
-    // Fetch pricing when settings change
+    // Update pricing when settings or printer details change
     useEffect(() => {
-        updatePricing();
-    }, [settings]);
+        const result = calculateRealPrice(settings, printerDetails);
+        setPricing(result);
+    }, [settings, printerDetails]);
 
-    const updatePricing = async () => {
-        setIsPricingLoading(true);
-        try {
-            const price = await fetchPricingFromBackend(settings);
-            setPricing(price);
-        } catch (error) {
-            console.error('Failed to fetch pricing:', error);
-        } finally {
-            setIsPricingLoading(false);
-        }
-    };
+    // Fetch full printer details when selected printer changes
+    useEffect(() => {
+        const fetchDetails = async () => {
+            if (selectedPrinter?.id) {
+                setIsPrinterLoading(true);
+                const res = await printerService.getPrinterDetails(selectedPrinter.id);
+                if (res.success && res.printer) {
+                    setPrinterDetails(res.printer);
+
+                    const { capabilities } = res.printer;
+                    if (!capabilities.supports_color && settings.colorMode === 'color') {
+                        updateSetting('colorMode', 'bw');
+                    }
+                    if (!capabilities.supports_duplex && settings.sides === 'double') {
+                        updateSetting('sides', 'single');
+                    }
+                }
+                setIsPrinterLoading(false);
+            }
+        };
+        fetchDetails();
+    }, [selectedPrinter?.id]);
 
     const updateSetting = (key: string, value: any) => {
         setSettings((prev: typeof settings) => ({ ...prev, [key]: value }));
@@ -127,19 +162,36 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
 
             if (result && result.length > 0) {
                 const file = result[0];
+
+                // Copy to cache to resolve permission issues
+                let fileUri = file.uri;
+                if (fileUri.startsWith('content://')) {
+                    const cachePath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${file.name}`;
+                    await ReactNativeBlobUtil.fs.cp(fileUri, cachePath);
+                    fileUri = `file://${cachePath}`;
+                }
+
                 setDocument({
                     name: file.name || 'Document',
-                    uri: file.uri,
+                    uri: fileUri,
                     type: file.type,
                     size: file.size,
-                    pages: 10,
+                    pages: 0,
                 });
-                updateSetting('totalPages', 10);
+                // Reset pages and start detection
+                updateSetting('totalPages', 0);
+                const docType = getFileType(file.name || '', file.type || '');
+                if (docType === 'pdf') {
+                    setIsDetectingPages(true);
+                } else if (docType === 'image') {
+                    updateSetting('totalPages', 1);
+                }
             }
         } catch (e: any) {
             if (e?.code === 'DOCUMENT_PICKER_CANCELED' || e?.message?.includes('cancel')) {
                 // cancelled
             } else {
+                console.error('Picker Error:', e);
                 setErrorMsg('Failed to pick document. Please try again.');
             }
         } finally {
@@ -148,6 +200,14 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
     };
 
     const handleProceed = () => {
+        if (!document) {
+            setErrorMsg('Please select a document first');
+            return;
+        }
+        if (isDetectingPages) {
+            setErrorMsg('Calculating page count... Please wait');
+            return;
+        }
         navigation.navigate('PaymentScreen', {
             document,
             settings,
@@ -168,12 +228,16 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
             >
                 <View style={styles.printerInfo}>
                     <View style={[styles.printerIcon, { backgroundColor: theme.colors.primary + '15' }]}>
-                        <Icon name="printer" size={20} color={theme.colors.primary} />
+                        {isPrinterLoading ? (
+                            <ActivityIndicator size="small" color={theme.colors.primary} />
+                        ) : (
+                            <Icon name="printer" size={20} color={theme.colors.primary} />
+                        )}
                     </View>
                     <View>
                         <Text variant="labelSmall" style={{ color: '#666' }}>Printing to</Text>
                         <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#1A1A2E' }}>
-                            {selectedPrinter?.location || 'Select Printer'}
+                            {isPrinterLoading ? 'Fetching details...' : (selectedPrinter?.location || 'Select Printer')}
                         </Text>
                     </View>
                 </View>
@@ -213,6 +277,13 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                                 page={1}
                                                 fitPolicy={0}
                                                 trustAllCerts={false}
+                                                onLoadComplete={(numberOfPages) => {
+                                                    console.log('Main Preview: PDF detected:', numberOfPages);
+                                                    if (numberOfPages > 0) {
+                                                        updateSetting('totalPages', numberOfPages);
+                                                        setIsDetectingPages(false);
+                                                    }
+                                                }}
                                                 onError={(error) => console.log('PDF Error:', error)}
                                             />
                                         </View>
@@ -254,9 +325,9 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
 
                             <View style={styles.pageInfo}>
                                 <View>
-                                    <Text variant="bodySmall" style={{ color: '#666' }}>Pages</Text>
+                                    <Text variant="bodySmall" style={{ color: '#666' }}>Pages to Print</Text>
                                     <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>
-                                        {settings.totalPages} × {settings.copies}
+                                        {isDetectingPages ? 'Detecting...' : settings.totalPages || (fileType === 'pdf' ? '...' : '1')} {settings.totalPages === 1 ? 'page' : 'pages'}
                                     </Text>
                                 </View>
                                 <View style={{ alignItems: 'flex-end' }}>
@@ -342,11 +413,26 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                             <Text style={[styles.tileText, settings.colorMode === 'bw' && styles.tileTextActive]}>Black & White</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={[styles.tile, settings.colorMode === 'color' && styles.tileActive]}
-                                            onPress={() => updateSetting('colorMode', 'color')}
+                                            style={[
+                                                styles.tile,
+                                                settings.colorMode === 'color' && styles.tileActive,
+                                                printerDetails && !printerDetails.capabilities.supports_color && { opacity: 0.4 }
+                                            ]}
+                                            onPress={() => {
+                                                if (printerDetails && !printerDetails.capabilities.supports_color) {
+                                                    setErrorMsg('This printer does not support color printing');
+                                                    return;
+                                                }
+                                                updateSetting('colorMode', 'color');
+                                            }}
                                         >
                                             <Icon name="palette" size={20} color={settings.colorMode === 'color' ? 'white' : '#666'} />
-                                            <Text style={[styles.tileText, settings.colorMode === 'color' && styles.tileTextActive]}>Full Color</Text>
+                                            <View>
+                                                <Text style={[styles.tileText, settings.colorMode === 'color' && styles.tileTextActive]}>Full Color</Text>
+                                                {printerDetails && !printerDetails.capabilities.supports_color && (
+                                                    <Text style={{ fontSize: 8, color: '#FF5252' }}>Not Supported</Text>
+                                                )}
+                                            </View>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -371,15 +457,30 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                             <Text style={[styles.tileText, settings.sides === 'single' && styles.tileTextActive]}>One Side</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={[styles.tile, settings.sides === 'double' && styles.tileActive]}
-                                            onPress={() => updateSetting('sides', 'double')}
+                                            style={[
+                                                styles.tile,
+                                                settings.sides === 'double' && styles.tileActive,
+                                                printerDetails && !printerDetails.capabilities.supports_duplex && { opacity: 0.4 }
+                                            ]}
+                                            onPress={() => {
+                                                if (printerDetails && !printerDetails.capabilities.supports_duplex) {
+                                                    setErrorMsg('This printer does not support double-sided printing');
+                                                    return;
+                                                }
+                                                updateSetting('sides', 'double');
+                                            }}
                                         >
                                             <Icon name="file-multiple" size={20} color={settings.sides === 'double' ? 'white' : '#666'} />
-                                            <Text style={[styles.tileText, settings.sides === 'double' && styles.tileTextActive]}>Both Sides</Text>
+                                            <View>
+                                                <Text style={[styles.tileText, settings.sides === 'double' && styles.tileTextActive]}>Both Sides</Text>
+                                                {printerDetails && !printerDetails.capabilities.supports_duplex && (
+                                                    <Text style={{ fontSize: 8, color: '#FF5252' }}>Not Supported</Text>
+                                                )}
+                                            </View>
                                         </TouchableOpacity>
                                     </View>
                                     {settings.sides === 'double' && (
-                                        <Text variant="labelSmall" style={styles.discountTag}>✨ 20% Discount applied for Duplex!</Text>
+                                        <Text variant="labelSmall" style={styles.discountTag}>✨ Optimized Duplex rate applied!</Text>
                                     )}
                                 </View>
 
@@ -404,6 +505,36 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                             <TouchableOpacity
                                                 style={styles.stepBtn}
                                                 onPress={() => updateSetting('copies', settings.copies + 1)}
+                                            >
+                                                <Icon name="plus" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </View>
+
+                                {/* Pages Stepper (Manual Override) */}
+                                <View style={styles.settingCard}>
+                                    <View style={styles.settingHeader}>
+                                        <View style={[styles.cardIconBox, { backgroundColor: '#E0F2F1' }]}>
+                                            <Icon name="file-document-multiple-outline" size={22} color="#00796B" />
+                                        </View>
+                                        <View style={{ flex: 1 }}>
+                                            <Text variant="titleMedium" style={styles.cardTitle}>Total Pages</Text>
+                                            <Text variant="bodySmall" style={styles.cardSubtitle}>
+                                                {fileType === 'pdf' ? 'Auto-detected from PDF' : 'Adjust if needed'}
+                                            </Text>
+                                        </View>
+                                        <View style={styles.stepperContainer}>
+                                            <TouchableOpacity
+                                                style={styles.stepBtn}
+                                                onPress={() => updateSetting('totalPages', Math.max(1, settings.totalPages - 1))}
+                                            >
+                                                <Icon name="minus" size={20} color="#666" />
+                                            </TouchableOpacity>
+                                            <Text variant="titleLarge" style={styles.stepValue}>{settings.totalPages}</Text>
+                                            <TouchableOpacity
+                                                style={styles.stepBtn}
+                                                onPress={() => updateSetting('totalPages', settings.totalPages + 1)}
                                             >
                                                 <Icon name="plus" size={20} color="#666" />
                                             </TouchableOpacity>
@@ -468,31 +599,69 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                 </View>
                             </View>
                         )}
+
+                        {/* Price Breakdown (Moved inside ScrollView) */}
+                        {pricing.total > 0 && (
+                            <View style={[styles.breakdownContainer, { backgroundColor: 'white', marginTop: 24, paddingBottom: 24 }]}>
+                                <Text variant="labelSmall" style={{ color: '#888', fontWeight: 'bold', letterSpacing: 1, marginBottom: 12 }}>PRICE BREAKDOWN</Text>
+                                <View>
+                                    {pricing.breakdown.map((item: any, idx: number) => (
+                                        <View key={idx} style={styles.breakdownRow}>
+                                            <Text variant="bodySmall" style={{ color: '#666' }}>{item.label}</Text>
+                                            <Text variant="bodySmall" style={{ fontWeight: 'bold', color: '#1A1A2E' }}>{item.value}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                                <Divider style={{ marginVertical: 12 }} />
+                            </View>
+                        )}
                     </View>
                 )}
             </ScrollView>
+
+            {/* Hidden PDF Page Detector - Runs in background to ensure totalPages is always accurate */}
+            {document && fileType === 'pdf' && (
+                <View style={{ height: 1, width: 1, opacity: 0.01, position: 'absolute', left: -100, top: -100 }}>
+                    <Pdf
+                        source={{ uri: document.uri, cache: true }}
+                        trustAllCerts={false}
+                        fitPolicy={0}
+                        onLoadComplete={(numberOfPages) => {
+                            console.log('Hidden Detector: PDF pages detected:', numberOfPages);
+                            if (numberOfPages > 0) {
+                                updateSetting('totalPages', numberOfPages);
+                                setIsDetectingPages(false);
+                            }
+                        }}
+                        onError={(error) => {
+                            console.log('Hidden Detector Error:', error);
+                            setIsDetectingPages(false);
+                            // Fallback to 1 if detection fails
+                            if (settings.totalPages === 0) updateSetting('totalPages', 1);
+                        }}
+                    />
+                </View>
+            )}
 
             {/* Bottom Bar */}
             {document && (
                 <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
                     <View>
-                        <Text variant="bodySmall" style={{ color: '#666' }}>
-                            {settings.totalPages * settings.copies} pages total
-                        </Text>
+                        <Text variant="bodySmall" style={{ color: '#666' }}>Payable Amount</Text>
                         {isPricingLoading ? (
                             <Skeleton height={28} width={60} />
                         ) : (
-                            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
-                                {pricing.currency}{pricing.total * settings.copies}
+                            <Text variant="headlineSmall" style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
+                                {pricing.currency}{pricing.total}
                             </Text>
                         )}
                     </View>
                     <Button
                         mode="contained"
                         onPress={handleProceed}
-                        style={{ paddingHorizontal: 24 }}
+                        style={{ paddingHorizontal: 24, borderRadius: 12 }}
                         contentStyle={{ height: 48 }}
-                        disabled={isPricingLoading}
+                        disabled={isPricingLoading || pricing.total === 0 || isDetectingPages}
                     >
                         Proceed to Pay
                     </Button>
@@ -534,6 +703,11 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                         fitPolicy={0}
                                         page={1}
                                         trustAllCerts={false}
+                                        onLoadComplete={(numberOfPages) => {
+                                            if (settings.totalPages !== numberOfPages) {
+                                                updateSetting('totalPages', numberOfPages);
+                                            }
+                                        }}
                                         onError={(error) => console.log('PDF Modal Error:', error)}
                                     />
                                 </View>
@@ -787,6 +961,17 @@ const styles = StyleSheet.create({
     nUpText: {
         fontWeight: 'bold',
         color: '#666',
+    },
+    breakdownContainer: {
+        marginTop: 20,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: '#F0F0F0',
+    },
+    breakdownRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 6,
     },
     bottomBar: {
         flexDirection: 'row',
