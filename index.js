@@ -1,6 +1,7 @@
 /**
  * @format
  */
+import 'react-native-get-random-values';
 import 'react-native-gesture-handler'; // Required for Android
 import { AppRegistry } from 'react-native';
 import App from './App';

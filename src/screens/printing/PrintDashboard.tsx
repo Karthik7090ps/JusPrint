@@ -7,21 +7,65 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { fetchHomeConfig } from '../../services/mockAdService';
 import { Skeleton, SkeletonCarousel, SkeletonListItem } from '../../components/common/Skeleton';
-import { useSelector } from 'react-redux';
+import { getSecureItem, STORAGE_KEYS } from '../../utils/secureStorage';
+import NetInfo from "@react-native-community/netinfo";
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { PrintStatusWidget } from '../../components/printing/PrintStatusWidget';
 import { printerService } from '../../services/printerService';
+import { paymentService } from '../../services/paymentService';
+import { setPrinters, loadCachedPrinters } from '../../store/slices/printerSlice';
+import { cacheService } from '../../services/cacheService';
+import { AppDispatch } from '../../store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 64;
 const CARD_SPACING = 12;
 
-const fetchRecentPrints = async () => {
-    await new Promise(resolve => setTimeout(() => resolve(undefined), 600));
-    return [
-        { id: 1, name: 'Project_Report.pdf', pages: 24, date: '2h ago', colorMode: 'bw', sides: 'single', timestamp: Date.now() - 7200000 },
-        { id: 2, name: 'Assignment.docx', pages: 8, date: 'Yesterday', colorMode: 'color', sides: 'double', timestamp: Date.now() - 86400000 },
-    ];
+const fetchRecentPrints = async (token?: string) => {
+    if (!token) return [];
+    try {
+        const res = await paymentService.getPaymentHistory(5, 0, token);
+        if (res.success && res.payments) {
+            return res.payments
+                .filter(p => p.status === 'success')
+                .map(p => {
+                    // Extract filename from description "Print: filename.pdf"
+                    let fileName = p.description || 'Document';
+                    if (fileName.startsWith('Print: ')) {
+                        fileName = fileName.replace('Print: ', '');
+                    }
+
+                    const dateObj = new Date(p.initiated_at);
+
+                    // Format relative date or simple date
+                    const now = new Date();
+                    const diffMs = now.getTime() - dateObj.getTime();
+                    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                    let dateStr = dateObj.toLocaleDateString();
+
+                    if (diffHrs < 24) {
+                        dateStr = diffHrs === 0 ? 'Just now' : `${diffHrs}h ago`;
+                    } else if (diffHrs < 48) {
+                        dateStr = 'Yesterday';
+                    }
+
+                    return {
+                        id: p.transaction_id,
+                        name: fileName,
+                        pages: 1, // Defaulting to 1 as it's not in the payment root
+                        date: dateStr,
+                        colorMode: 'bw',
+                        sides: 'single',
+                        timestamp: dateObj.getTime()
+                    };
+                });
+        }
+        return [];
+    } catch (e) {
+        console.error('Failed to fetch real history:', e);
+        return [];
+    }
 };
 
 const QUICK_ACTIONS = [
@@ -106,8 +150,10 @@ const generateSmartCards = (user: any, printer: any, recentPrints: any[]) => {
 export const PrintDashboard = ({ navigation, route }: { navigation: any; route: any }) => {
     const theme = useTheme();
     const insets = useSafeAreaInsets();
+    const dispatch = useDispatch<AppDispatch>();
     const { activeJob } = useSelector((state: RootState) => state.print);
     const { campusCode } = useSelector((state: RootState) => state.auth);
+    const { campusPrinters } = useSelector((state: RootState) => state.printer);
 
     // Data states
     const [selectedPrinter, setSelectedPrinter] = useState<any>(null);
@@ -123,6 +169,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
     const mockUser = { uncollectedPrints: 0, lockerNumber: 7, monthlyPages: 320 };
 
     useEffect(() => {
+        dispatch(loadCachedPrinters());
         loadData();
     }, []);
 
@@ -133,7 +180,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
     }, [route.params?.selectedPrinter]);
 
     useEffect(() => {
-        if (selectedPrinter && recentPrints.length > 0) {
+        if (selectedPrinter) {
             const cards = generateSmartCards(mockUser, selectedPrinter, recentPrints);
             setSmartCards(cards);
         }
@@ -176,9 +223,30 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
     const loadData = async () => {
         setIsLoading(true);
         try {
+            const netInfo = await NetInfo.fetch();
+            const token = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
+
+            // Load from cache first if offline
+            if (!netInfo.isConnected) {
+                console.log('[Dashboard] Offline mode detected');
+                // loadRecentPrintsFromCache? For now use what we have
+                const cachedDocs = await cacheService.getCachedFiles();
+                if (cachedDocs.length > 0) {
+                    setRecentPrints(cachedDocs.map(d => ({
+                        id: d.localPath,
+                        name: d.originalName,
+                        date: new Date(d.addedAt).toLocaleDateString(),
+                        timestamp: d.addedAt,
+                        isCached: true
+                    })));
+                }
+                setIsLoading(false);
+                return;
+            }
+
             const [ads, prints] = await Promise.all([
                 fetchHomeConfig(),
-                fetchRecentPrints(),
+                fetchRecentPrints(token || undefined),
             ]);
 
             setRecentPrints(prints);
@@ -187,7 +255,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
             if (campusCode) {
                 const res = await printerService.getPrintersByCampus(campusCode);
                 if (res.success && res.printers.length > 0) {
-                    // Just pick the first one for now as "last used"
+                    dispatch(setPrinters(res.printers));
                     if (!selectedPrinter) setSelectedPrinter(res.printers[0]);
                 }
             }

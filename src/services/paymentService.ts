@@ -1,4 +1,4 @@
-import API_CONFIG from '../config/api';
+import API_CONFIG, { apiRequest } from '../config/api';
 
 export interface PaymentInitiateRequest {
     amount: number;
@@ -38,15 +38,12 @@ class PaymentService {
 
     async initiatePayment(data: PaymentInitiateRequest, token?: string): Promise<PaymentResponse> {
         try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT.INITIATE}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify(data),
-            });
-            return await response.json();
+            return await apiRequest<PaymentResponse>(
+                API_CONFIG.ENDPOINTS.PAYMENT.INITIATE,
+                'POST',
+                data,
+                token
+            );
         } catch (error) {
             console.error('Payment initiation failed:', error);
             return {
@@ -61,15 +58,12 @@ class PaymentService {
 
     async processPayment(transactionId: string, token?: string): Promise<PaymentResponse> {
         try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT.PROCESS}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({ transaction_id: transactionId }),
-            });
-            return await response.json();
+            return await apiRequest<PaymentResponse>(
+                API_CONFIG.ENDPOINTS.PAYMENT.PROCESS,
+                'POST',
+                { transaction_id: transactionId },
+                token
+            );
         } catch (error) {
             console.error('Payment processing failed:', error);
             return {
@@ -84,14 +78,12 @@ class PaymentService {
 
     async verifyPayment(transactionId: string, token?: string): Promise<PaymentResponse> {
         try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT.VERIFY(transactionId)}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                },
-            });
-            return await response.json();
+            return await apiRequest<PaymentResponse>(
+                API_CONFIG.ENDPOINTS.PAYMENT.VERIFY(transactionId),
+                'GET',
+                undefined,
+                token
+            );
         } catch (error) {
             console.error('Payment verification failed:', error);
             return {
@@ -104,16 +96,15 @@ class PaymentService {
         }
     }
 
-    async getPaymentHistory(limit: number = 10, token?: string): Promise<{ success: boolean; payments: any[]; total_count: number }> {
+    async getPaymentHistory(limit: number = 10, skip: number = 0, token?: string): Promise<{ success: boolean; payments: any[]; total_count: number }> {
         try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT.HISTORY}?limit=${limit}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': token } : {}), // Header value per user request: authorization * string (header)
-                },
-            });
-            return await response.json();
+            const response = await apiRequest<{ success: boolean; payments: any[]; total_count: number }>(
+                `${API_CONFIG.ENDPOINTS.PAYMENT.HISTORY}?limit=${limit}&skip=${skip}`,
+                'GET',
+                undefined,
+                token
+            );
+            return response;
         } catch (error) {
             console.error('Failed to fetch payment history:', error);
             return {

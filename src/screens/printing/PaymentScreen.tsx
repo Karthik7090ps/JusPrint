@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Skeleton } from '../../components/common/Skeleton';
 import { useDispatch } from 'react-redux';
 import { startPrintJob } from '../../store/slices/printSlice';
+import { cacheService } from '../../services/cacheService';
 import { printerService } from '../../services/printerService';
 import { paymentService } from '../../services/paymentService';
 import { getSecureItem, STORAGE_KEYS } from '../../utils/secureStorage';
@@ -42,8 +43,14 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
     const [upiId, setUpiId] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed' | 'timeout'>('idle');
+    const [loadingMsg, setLoadingMsg] = useState('Processing payment...');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [transactionId, setTransactionId] = useState<string | null>(null);
+    const isMounted = useRef(true);
+
+    useEffect(() => {
+        return () => { isMounted.current = false; };
+    }, []);
 
     // Animation
     const successAnim = useRef(new Animated.Value(0)).current;
@@ -127,62 +134,113 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
 
         try {
             const token = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
-            // Generate a temporary job ID for tracing before registration if needed
-            // Or use a combination of user/timestamp
-            const tempJobId = `JOB_${Date.now()}`;
 
-            // 1. Initiate Payment
+            // --- 1. Upload Document first (GET job_id) ---
+            console.log('[Payment] STEP 1: Uploading document...');
+            setLoadingMsg('Uploading your document securely...');
+
+            const uploadRes = await printerService.uploadDocument(
+                printerId,
+                document.uri,
+                document.name,
+                document.type,
+                settings,
+                token || undefined
+            );
+
+            if (!uploadRes.success || !uploadRes.job_id) {
+                console.error('[Payment] Upload Error:', uploadRes.error);
+                throw new Error(uploadRes.error || 'Failed to upload document. Please check your connection.');
+            }
+
+            const backendJobId = uploadRes.job_id;
+            console.log('[Payment] Document uploaded. Job ID:', backendJobId);
+
+            // --- 2. Initiate Payment (Link to job_id) ---
+            console.log('[Payment] STEP 2: Initiating payment for Job:', backendJobId);
+            setLoadingMsg('Initiating secure payment...');
+
             const initiateRes = await paymentService.initiatePayment({
                 amount: calculatedPricing.total,
                 payment_method: 'upi',
                 payment_provider: selectedMethod,
                 upi_id: upiId,
-                print_job_id: tempJobId,
+                print_job_id: backendJobId, // Now we have the job_id!
                 description: `Print: ${document?.name}`
             }, token || undefined);
 
             if (!initiateRes.success) {
+                console.error('[Payment] Initiation Error:', initiateRes.message);
                 throw new Error(initiateRes.message || 'Failed to initiate payment');
             }
 
             const txnId = initiateRes.transaction_id;
+            console.log('[Payment] Transaction ID:', txnId);
             setTransactionId(txnId);
 
-            // 2. Process/Verify with 30s timeout
+            // --- 3. Process/Verify Payment (Poll for success) ---
+            console.log('[Payment] STEP 3: Verifying payment status...');
+            setLoadingMsg('Waiting for payment confirmation...');
+
             let isVerified = false;
             const startTime = Date.now();
-            const TIMEOUT_SEC = 30;
+            const TIMEOUT_SEC = 60;
 
-            // Simulate the processing call first (as per the curl example)
-            // In a real app, this might be triggered by the user completing the payment in their app
+            // Trigger mock processing
             await paymentService.processPayment(txnId, token || undefined);
 
             while (Date.now() - startTime < TIMEOUT_SEC * 1000) {
-                const verifyRes = await paymentService.verifyPayment(txnId, token || undefined);
+                if (!isMounted.current) return;
 
-                if (verifyRes.success && verifyRes.status === 'success') {
-                    isVerified = true;
-                    break;
-                } else if (verifyRes.status === 'failed') {
-                    throw new Error(verifyRes.message || 'Payment failed');
+                try {
+                    const verifyRes = await paymentService.verifyPayment(txnId, token || undefined);
+                    const currentStatus = verifyRes.status?.toLowerCase();
+
+                    if (verifyRes.success && currentStatus === 'success') {
+                        console.log('[Payment] ✅ Payment Verified!');
+                        isVerified = true;
+                        break;
+                    } else if (currentStatus === 'failed') {
+                        throw new Error(verifyRes.message || 'Payment failed');
+                    }
+                } catch (pollError) {
+                    console.warn('[Payment] Polling error:', pollError);
                 }
 
-                // Wait 2 seconds before next poll
-                await new Promise(resolve => setTimeout(() => resolve(null), 2000));
+                await new Promise(resolve => setTimeout(() => resolve(null), 3000));
             }
 
-            if (!isVerified) {
-                setPaymentStatus('timeout');
-                setErrorMsg('Payment verification timed out. Please check your banking app.');
-                return;
+            if (!isVerified || !isMounted.current) {
+                throw new Error('Payment verification timed out. Please check your app.');
             }
 
-            // 3. Success Flow
+            // --- 4. Success Feedback & Submit ---
             setPaymentStatus('success');
+            setLoadingMsg('Payment Successful! Finalizing your order...');
+
+            console.log('[Payment] STEP 4: Submitting job to printer...', backendJobId);
+            setLoadingMsg('Sending to printer queue...');
+
+            const submitRes = await printerService.submitPrintJob(backendJobId, txnId, token || undefined);
+
+            if (!submitRes.success) {
+                console.error('[Payment] Submission Error:', submitRes.error);
+                throw new Error(submitRes.error || 'Payment successful but failed to queue job');
+            }
+
+            // Final finalize
+            setLoadingMsg('All set! Preparing your status view...');
+
+            // Cache the file locally for future offline reprints
+            try {
+                await cacheService.cacheFile(document.uri, document.name, document.type);
+            } catch (cacheErr) {
+                console.warn('[Payment] Cache failed (non-critical):', cacheErr);
+            }
 
             // Dispatch global job start
             dispatch(startPrintJob({
-                id: txnId,
+                id: backendJobId,
                 documentName: document.name,
                 totalAmount: calculatedPricing.total
             }));
@@ -204,7 +262,8 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
                                 document,
                                 settings,
                                 pricing: calculatedPricing,
-                                transactionId: txnId
+                                transactionId: txnId,
+                                jobId: backendJobId
                             }
                         },
                     ],
@@ -212,6 +271,7 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
             }, 1500);
 
         } catch (error: any) {
+            console.error('[Payment] ❌ CAUGHT ERROR:', error.message || error);
             setPaymentStatus('failed');
             setErrorMsg(error.message || 'An unexpected error occurred during payment');
         } finally {
@@ -372,11 +432,11 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
             </View>
 
             {/* Processing Overlay */}
-            {isProcessing && (
+            {isProcessing && paymentStatus !== 'success' && (
                 <View style={styles.processingOverlay}>
                     <Card style={styles.statusCard}>
                         <ActivityIndicator size="large" color={theme.colors.primary} />
-                        <Text variant="titleMedium" style={{ marginTop: 20, fontWeight: 'bold' }}>Processing Payment</Text>
+                        <Text variant="titleMedium" style={{ marginTop: 20, fontWeight: 'bold' }}>{loadingMsg}</Text>
                         <Text variant="bodyMedium" style={{ color: '#666', textAlign: 'center', marginTop: 8 }}>
                             Please do not close the app or go back while we verify your transaction.
                         </Text>
@@ -384,7 +444,7 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
                 </View>
             )}
 
-            {/* Success Animation */}
+            {/* Success Animation + Upload Progress */}
             {paymentStatus === 'success' && (
                 <View style={styles.processingOverlay}>
                     <Animated.View style={[
@@ -393,8 +453,9 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
                     ]}>
                         <View style={styles.successIcon}><Icon name="check" size={48} color="white" /></View>
                         <Text variant="headlineSmall" style={{ marginTop: 20, fontWeight: 'bold', color: '#2ECC71' }}>Success!</Text>
-                        <Text variant="bodyMedium" style={{ marginTop: 8 }}>Transaction ID: {transactionId}</Text>
-                        <Text variant="bodySmall" style={{ color: '#888', marginTop: 12 }}>Redirecting to job status...</Text>
+                        <Text variant="bodyMedium" style={{ marginTop: 8, textAlign: 'center', fontWeight: 'bold' }}>{loadingMsg}</Text>
+                        <ActivityIndicator size="small" color="#2ECC71" style={{ marginTop: 15 }} />
+                        <Text variant="bodySmall" style={{ color: '#888', marginTop: 12 }}>Transaction ID: {transactionId}</Text>
                     </Animated.View>
                 </View>
             )}

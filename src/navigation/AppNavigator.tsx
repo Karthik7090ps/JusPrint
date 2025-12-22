@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import { Snackbar } from 'react-native-paper';
+import NetInfo from '@react-native-community/netinfo';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainTabNavigator } from './MainTabNavigator';
@@ -19,6 +21,7 @@ import { SplashScreen } from '../screens/SplashScreen';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { checkStoredAuth } from '../store/slices/authSlice';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,8 +29,21 @@ export const AppNavigator = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
 
+    // Initialize WebSocket listeners
+    useWebSocket();
+
+    const [isOffline, setIsOffline] = useState(false);
+
     useEffect(() => {
         dispatch(checkStoredAuth());
+
+        // Connectivity listener
+        const unsubscribe = NetInfo.addEventListener(state => {
+            const offline = state.isConnected === false;
+            setIsOffline(offline);
+        });
+
+        return () => unsubscribe();
     }, [dispatch]);
 
     return (
@@ -53,6 +69,20 @@ export const AppNavigator = () => {
                     </>
                 )}
             </Stack.Navigator>
+            <Snackbar
+                visible={isOffline}
+                onDismiss={() => { }}
+                action={{
+                    label: 'Retry',
+                    onPress: () => {
+                        NetInfo.refresh();
+                    },
+                }}
+                duration={1000000}
+                style={{ backgroundColor: '#E74C3C' }}
+            >
+                No internet connection. Please check your network.
+            </Snackbar>
         </NavigationContainer>
     );
 };

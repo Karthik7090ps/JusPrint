@@ -1,4 +1,5 @@
 import API_CONFIG, { apiRequest } from '../config/api';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
 export interface PrinterPricing {
     price_bw_single: number;
@@ -71,6 +72,126 @@ export const printerService = {
         } catch (error: any) {
             console.error('[PRINTER_SERVICE] Failed to fetch printer details:', error);
             return { success: false, printer: null };
+        }
+    },
+
+    /**
+     * Upload document for printing
+     */
+    uploadDocument: async (
+        printerId: string,
+        fileUri: string,
+        fileName: string,
+        fileType: string,
+        settings: any,
+        token?: string
+    ): Promise<{ success: boolean; job_id?: string; error?: string }> => {
+        try {
+            const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PRINT.UPLOAD}`;
+            console.log(`[PRINTER_SERVICE] Attempting Native Upload to: ${url}`);
+
+            const cleanPath = fileUri.replace('file://', '');
+
+            // Verify file exists
+            const exists = await ReactNativeBlobUtil.fs.exists(cleanPath);
+            if (!exists) {
+                return { success: false, error: 'File not found locally' };
+            }
+
+            // Pass token in 3 ways because the backend /upload endpoint 
+            // is missing the Header() decorator for it.
+            const authToken = token ? `Bearer ${token}` : '';
+            const uploadUrl = `${url}${token ? `?authorization=${encodeURIComponent(authToken)}` : ''}`;
+
+            const response = await ReactNativeBlobUtil.fetch(
+                'POST',
+                uploadUrl,
+                {
+                    'Authorization': authToken,
+                    'authorization': authToken,
+                    'Content-Type': 'multipart/form-data',
+                },
+                [
+                    { name: 'printer_id', data: printerId },
+                    { name: 'authorization', data: authToken }, // Form field
+                    { name: 'copies', data: String(settings.copies || 1) },
+                    { name: 'color_mode', data: settings.colorMode || 'bw' },
+                    { name: 'sides', data: settings.sides || 'single' },
+                    { name: 'orientation', data: settings.orientation || 'portrait' },
+                    { name: 'page_size', data: settings.pageSize || 'A4' },
+                    { name: 'total_pages', data: String(settings.totalPages || 0) },
+                    {
+                        name: 'file',
+                        filename: fileName || 'document.pdf',
+                        type: fileType || 'application/pdf',
+                        data: ReactNativeBlobUtil.wrap(cleanPath),
+                    },
+                ]
+            );
+
+            const status = response.respInfo.status;
+            const rawData = await response.text();
+            console.log('[PRINTER_SERVICE] Raw Response:', rawData);
+
+            let data;
+            try {
+                data = JSON.parse(rawData);
+            } catch (e) {
+                console.error('[PRINTER_SERVICE] Server returned non-JSON response. Check backend logs.');
+                throw new Error(`Server Error (${status}): ${rawData.substring(0, 100)}...`);
+            }
+
+            console.log('[PRINTER_SERVICE] Native Upload Response:', status, data);
+
+            if (status >= 400) {
+                throw new Error(data.detail || data.error || `Server error ${status}`);
+            }
+
+            return { success: true, job_id: data.id || data.job_id };
+        } catch (error: any) {
+            console.error('[PRINTER_SERVICE] Native Upload Error:', error);
+            return { success: false, error: error.message || 'Upload failed' };
+        }
+    },
+
+    /**
+     * Submit job after successful payment
+     */
+    submitPrintJob: async (jobId: string, paymentId: string, token?: string): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const authToken = token ? `Bearer ${token}` : '';
+            const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PRINT.SUBMIT(jobId)}?payment_id=${paymentId}${token ? `&authorization=${encodeURIComponent(authToken)}` : ''}`;
+
+            console.log('[PRINTER_SERVICE] Attempting Job Submission to:', url);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': authToken,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const status = response.status;
+            const rawData = await response.text();
+            console.log('[PRINTER_SERVICE] Submit Raw Response:', rawData);
+
+            let data;
+            try {
+                data = JSON.parse(rawData);
+            } catch (e) {
+                console.error('[PRINTER_SERVICE] Server returned non-JSON during submit. Status:', status);
+                throw new Error(`Server Error (${status}) during submission: ${rawData.substring(0, 100)}...`);
+            }
+
+            if (status >= 400) {
+                throw new Error(data.detail || data.error || data.message || `Submission failed (${status})`);
+            }
+
+            return { success: true, ...data };
+        } catch (error: any) {
+            console.error('[PRINTER_SERVICE] Job submission failed:', error);
+            return { success: false, error: error.message || 'Failed to submit print job' };
         }
     }
 };

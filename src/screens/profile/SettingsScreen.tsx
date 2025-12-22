@@ -38,24 +38,37 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
     // History State
     const [history, setHistory] = useState<any[]>([]);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [totalHistoryCount, setTotalHistoryCount] = useState(0);
     const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchHistory();
+        fetchHistory(true);
     }, []);
 
-    const fetchHistory = async () => {
-        setHistoryLoading(true);
+    const fetchHistory = async (isInitial: boolean = true) => {
+        if (isInitial) setHistoryLoading(true);
+        else setLoadingMore(true);
+
         try {
             const token = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
-            const res = await paymentService.getPaymentHistory(10, token || undefined);
+            const currentCount = isInitial ? 0 : history.length;
+            const limit = 10;
+            const res = await paymentService.getPaymentHistory(limit, currentCount, token || undefined);
+
             if (res.success) {
-                setHistory(res.payments || []);
+                if (isInitial) {
+                    setHistory(res.payments || []);
+                } else {
+                    setHistory(prev => [...prev, ...(res.payments || [])]);
+                }
+                setTotalHistoryCount(res.total_count || 0);
             }
         } catch (error) {
             console.error('History fetch error:', error);
         } finally {
             setHistoryLoading(false);
+            setLoadingMore(false);
         }
     };
 
@@ -188,8 +201,8 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
                 <View style={[styles.section, isDarkMode && styles.cardDark]}>
                     <View style={styles.sectionHeader}>
                         <Text variant="titleSmall" style={styles.sectionTitle}>Order History</Text>
-                        <TouchableOpacity onPress={fetchHistory} disabled={historyLoading}>
-                            <Icon name="refresh" size={18} color={theme.colors.primary} style={{ opacity: historyLoading ? 0.5 : 1 }} />
+                        <TouchableOpacity onPress={() => fetchHistory(true)} disabled={historyLoading || loadingMore}>
+                            <Icon name="refresh" size={18} color={theme.colors.primary} style={{ opacity: (historyLoading || loadingMore) ? 0.5 : 1 }} />
                         </TouchableOpacity>
                     </View>
 
@@ -202,7 +215,7 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
                         </View>
                     ) : (
                         <View style={styles.historyList}>
-                            {history.slice(0, 5).map((payment: any, index: number) => {
+                            {history.map((payment: any, index: number) => {
                                 const isExpanded = expandedOrder === payment.transaction_id;
                                 const date = new Date(payment.initiated_at).toLocaleDateString('en-IN', {
                                     day: '2-digit', month: 'short', year: 'numeric'
@@ -260,12 +273,21 @@ export const SettingsScreen = ({ navigation }: { navigation: any }) => {
                                                 )}
                                             </View>
                                         )}
-                                        {index < 4 && index < history.length - 1 && <Divider style={{ marginVertical: 4, opacity: 0.5 }} />}
+                                        {index < history.length - 1 && <Divider style={{ marginVertical: 4, opacity: 0.5 }} />}
                                     </View>
                                 );
                             })}
-                            {history.length > 5 && (
-                                <Button mode="text" style={{ alignSelf: 'center' }} labelStyle={{ fontSize: 12 }}>View All History</Button>
+
+                            {history.length < totalHistoryCount && (
+                                <Button
+                                    mode="text"
+                                    onPress={() => fetchHistory(false)}
+                                    loading={loadingMore}
+                                    style={{ alignSelf: 'center', marginTop: 12 }}
+                                    labelStyle={{ fontSize: 13 }}
+                                >
+                                    Load More
+                                </Button>
                             )}
                         </View>
                     )}

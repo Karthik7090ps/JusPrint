@@ -9,6 +9,7 @@ import { Skeleton } from '../../components/common/Skeleton';
 import Pdf from 'react-native-pdf';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { printerService, Printer } from '../../services/printerService';
+import { cacheService } from '../../services/cacheService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -99,16 +100,23 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         ...presetSettings
     });
 
+    const [cachedFiles, setCachedFiles] = useState<any[]>([]);
+    const [isCachedListVisible, setIsCachedListVisible] = useState(false);
+
     const fileType = document ? getFileType(document.name, document.type) : 'other';
 
     // Auto-open picker if no document provided
     useEffect(() => {
+        let timer: any;
         if (!existingDoc && !document && !isPickerOpen) {
-            const timer = setTimeout(() => {
+            // Increased delay to 800ms to avoid NULL_PRESENTER error on Android
+            timer = setTimeout(() => {
                 handlePickDocument();
-            }, 300);
-            return () => clearTimeout(timer);
+            }, 800);
         }
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
     }, []);
 
     // Update printer if returned from selection
@@ -163,27 +171,35 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
             if (result && result.length > 0) {
                 const file = result[0];
 
-                // Copy to cache to resolve permission issues
+                // Sanitize filename for local storage and state
+                const safeName = (file.name || 'document').replace(/[^a-zA-Z0-9._-]/g, '_');
+
+                // Copy to cache to resolve permission issues with content:// URIs
                 let fileUri = file.uri;
                 if (fileUri.startsWith('content://')) {
-                    const cachePath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${file.name}`;
+                    const cachePath = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${safeName}`;
+                    console.log('[DocumentPicker] Copying to cache:', cachePath);
                     await ReactNativeBlobUtil.fs.cp(fileUri, cachePath);
                     fileUri = `file://${cachePath}`;
                 }
 
+                const docType = getFileType(file.name || '', file.type || '');
+                if (docType === 'pdf') {
+                    setIsDetectingPages(true);
+                }
+
                 setDocument({
-                    name: file.name || 'Document',
+                    name: safeName,
                     uri: fileUri,
                     type: file.type,
                     size: file.size,
                     pages: 0,
                 });
+
                 // Reset pages and start detection
                 updateSetting('totalPages', 0);
-                const docType = getFileType(file.name || '', file.type || '');
-                if (docType === 'pdf') {
-                    setIsDetectingPages(true);
-                } else if (docType === 'image') {
+
+                if (docType === 'image') {
                     updateSetting('totalPages', 1);
                 }
             }
@@ -199,19 +215,48 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
         }
     };
 
+    const handleSelectCached = (cached: any) => {
+        const docType = getFileType(cached.originalName, cached.mimeType);
+        if (docType === 'pdf') {
+            setIsDetectingPages(true);
+        }
+
+        setDocument({
+            uri: `file://${cached.localPath}`,
+            name: cached.originalName,
+            type: cached.mimeType,
+            size: cached.size,
+            pages: 0,
+            isCached: true
+        });
+        updateSetting('totalPages', 0);
+
+        if (docType === 'image') {
+            updateSetting('totalPages', 1);
+        }
+        setIsCachedListVisible(false);
+    };
+
     const handleProceed = () => {
         if (!document) {
             setErrorMsg('Please select a document first');
             return;
         }
         if (isDetectingPages) {
-            setErrorMsg('Calculating page count... Please wait');
+            setErrorMsg('Please wait while we calculate the page count');
             return;
         }
+        if (settings.totalPages <= 0) {
+            setErrorMsg('Unable to determine page count. Please adjust manually.');
+            return;
+        }
+
+        console.log('[DocumentUpload] Proceeding with pages:', settings.totalPages, 'Total:', pricing.total);
+
         navigation.navigate('PaymentScreen', {
             document,
             settings,
-            pricing: selectedPrinter?.pricing || pricing,
+            pricing, // Pass the already calculated pricing object
             printerId: selectedPrinter?.id,
             printerName: selectedPrinter?.name || selectedPrinter?.location
         });
@@ -271,6 +316,7 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                     {fileType === 'pdf' ? (
                                         <View style={{ flex: 1, width: '100%', backgroundColor: '#fff' }}>
                                             <Pdf
+                                                key={document.uri}
                                                 source={{ uri: document.uri, cache: true }}
                                                 style={{ flex: 1, width: '100%' }}
                                                 singlePage={true}
@@ -278,13 +324,13 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                                                 fitPolicy={0}
                                                 trustAllCerts={false}
                                                 onLoadComplete={(numberOfPages) => {
-                                                    console.log('Main Preview: PDF detected:', numberOfPages);
-                                                    if (numberOfPages > 0) {
-                                                        updateSetting('totalPages', numberOfPages);
-                                                        setIsDetectingPages(false);
-                                                    }
+                                                    console.log('Main Preview: Document loaded (Page 1)');
+                                                    // We no longer set totalPages here to avoid race conditions with the hidden detector
                                                 }}
-                                                onError={(error) => console.log('PDF Error:', error)}
+                                                onError={(error) => {
+                                                    console.log('PDF Error:', error);
+                                                    setIsDetectingPages(false);
+                                                }}
                                             />
                                         </View>
                                     ) : fileType === 'image' ? (
@@ -352,21 +398,41 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                             </Button>
                         </View>
                     ) : (
-                        <TouchableOpacity
-                            style={styles.uploadBox}
-                            onPress={handlePickDocument}
-                            disabled={isPickerOpen}
-                        >
-                            {isPickerOpen ? (
-                                <ActivityIndicator size="large" color={theme.colors.primary} />
-                            ) : (
-                                <Icon name="file-upload-outline" size={48} color={theme.colors.primary} />
+                        <View style={{ gap: 12 }}>
+                            <TouchableOpacity
+                                style={styles.uploadBox}
+                                onPress={handlePickDocument}
+                                disabled={isPickerOpen}
+                            >
+                                {isPickerOpen ? (
+                                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                                ) : (
+                                    <Icon name="file-upload-outline" size={48} color={theme.colors.primary} />
+                                )}
+                                <Text variant="titleMedium" style={{ marginTop: 12 }}>
+                                    {isPickerOpen ? 'Opening...' : 'Tap to Upload'}
+                                </Text>
+                                <Text variant="bodySmall" style={{ color: '#666' }}>PDF, DOCX, PPT, Images</Text>
+                            </TouchableOpacity>
+
+                            {cachedFiles.length > 0 && (
+                                <View style={styles.recentFiles}>
+                                    <Text variant="titleSmall" style={{ marginBottom: 8 }}>Recently Printed</Text>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                        {cachedFiles.slice(0, 5).map((file, idx) => (
+                                            <TouchableOpacity
+                                                key={idx}
+                                                style={styles.recentFileCard}
+                                                onPress={() => handleSelectCached(file)}
+                                            >
+                                                <Icon name="file-document-outline" size={24} color={theme.colors.primary} />
+                                                <Text numberOfLines={1} style={styles.recentFileText}>{file.originalName}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
                             )}
-                            <Text variant="titleMedium" style={{ marginTop: 12 }}>
-                                {isPickerOpen ? 'Opening...' : 'Tap to Upload'}
-                            </Text>
-                            <Text variant="bodySmall" style={{ color: '#666' }}>PDF, DOCX, PPT, Images</Text>
-                        </TouchableOpacity>
+                        </View>
                     )}
                 </View>
 
@@ -619,24 +685,25 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                 )}
             </ScrollView>
 
-            {/* Hidden PDF Page Detector - Runs in background to ensure totalPages is always accurate */}
+            {/* FIXED: Hidden PDF Page Detector with proper dimensions */}
             {document && fileType === 'pdf' && (
-                <View style={{ height: 1, width: 1, opacity: 0.01, position: 'absolute', left: -100, top: -100 }}>
+                <View style={{ height: 100, width: 100, opacity: 0, position: 'absolute', left: -200, top: -200, overflow: 'hidden' }}>
                     <Pdf
+                        key={`detector-${document.uri}`}
                         source={{ uri: document.uri, cache: true }}
+                        style={{ flex: 1, width: 100, height: 100 }}
                         trustAllCerts={false}
                         fitPolicy={0}
                         onLoadComplete={(numberOfPages) => {
                             console.log('Hidden Detector: PDF pages detected:', numberOfPages);
                             if (numberOfPages > 0) {
                                 updateSetting('totalPages', numberOfPages);
-                                setIsDetectingPages(false);
                             }
+                            setIsDetectingPages(false);
                         }}
                         onError={(error) => {
                             console.log('Hidden Detector Error:', error);
                             setIsDetectingPages(false);
-                            // Fallback to 1 if detection fails
                             if (settings.totalPages === 0) updateSetting('totalPages', 1);
                         }}
                     />
@@ -648,8 +715,8 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                 <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
                     <View>
                         <Text variant="bodySmall" style={{ color: '#666' }}>Payable Amount</Text>
-                        {isPricingLoading ? (
-                            <Skeleton height={28} width={60} />
+                        {isPricingLoading || isDetectingPages ? (
+                            <Skeleton height={28} width={100} />
                         ) : (
                             <Text variant="headlineSmall" style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                                 {pricing.currency}{pricing.total}
@@ -659,11 +726,17 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                     <Button
                         mode="contained"
                         onPress={handleProceed}
+                        loading={isDetectingPages}
                         style={{ paddingHorizontal: 24, borderRadius: 12 }}
                         contentStyle={{ height: 48 }}
-                        disabled={isPricingLoading || pricing.total === 0 || isDetectingPages}
+                        disabled={
+                            isPricingLoading ||
+                            isDetectingPages ||
+                            settings.totalPages <= 0 ||
+                            pricing.total <= 0
+                        }
                     >
-                        Proceed to Pay
+                        {isDetectingPages ? 'Calculating...' : 'Proceed to Pay'}
                     </Button>
                 </View>
             )}
@@ -693,8 +766,6 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
                             styles.fullPreviewPage,
                             settings.orientation === 'landscape' ? styles.fullPreviewLandscape : styles.fullPreviewPortrait
                         ]}>
-                            {/* Actual Content Render for Modal */}
-                            {/* Actual Content Render for Modal */}
                             {fileType === 'pdf' ? (
                                 <View style={{ flex: 1, width: '100%', backgroundColor: 'white' }}>
                                     <Pdf
@@ -773,7 +844,6 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F4F5F9' },
     content: { flex: 1, padding: 16 },
-    // ... existing styles ...
     settingsSection: { marginTop: 16 },
     tabContainer: {
         flexDirection: 'row',
@@ -987,7 +1057,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-    // Keep internal legacy styles if needed by other components
     settingRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -1130,7 +1199,7 @@ const styles = StyleSheet.create({
     },
     fullPreviewPortrait: {
         width: SCREEN_WIDTH * 0.7,
-        height: (SCREEN_WIDTH * 0.7) * 1.414, // A4 ratio
+        height: (SCREEN_WIDTH * 0.7) * 1.414,
     },
     fullPreviewLandscape: {
         width: SCREEN_WIDTH * 0.85,
@@ -1162,5 +1231,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 8,
         marginTop: 20,
+    },
+    recentFiles: {
+        marginTop: 8,
+    },
+    recentFileCard: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 12,
+        marginRight: 10,
+        width: 100,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
+    },
+    recentFileText: {
+        fontSize: 10,
+        color: '#666',
+        marginTop: 4,
+        textAlign: 'center',
     }
 });

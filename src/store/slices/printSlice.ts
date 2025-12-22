@@ -35,19 +35,23 @@ const printSlice = createSlice({
             };
             state.isMinimized = false; // Start full screen usually
         },
-        updateJobStatus: (state, action: PayloadAction<'paid' | 'queued' | 'printing' | 'ready' | 'completed'>) => {
-            if (state.activeJob) {
-                state.activeJob.status = action.payload;
+        updateJobStatus: (state, action: PayloadAction<{ jobId: string; status: 'paid' | 'queued' | 'printing' | 'ready' | 'completed' }>) => {
+            if (state.activeJob && (state.activeJob.id == action.payload.jobId)) {
+                state.activeJob.status = action.payload.status;
             }
         },
-        updateJobProgress: (state, action: PayloadAction<number>) => {
-            if (state.activeJob) {
-                state.activeJob.progress = action.payload;
+        updateJobProgress: (state, action: PayloadAction<{ jobId: string; progress: number }>) => {
+            if (state.activeJob && (state.activeJob.id == action.payload.jobId)) {
+                state.activeJob.progress = action.payload.progress;
+                // If we receive progress, we are definitely printing
+                if (state.activeJob.status !== 'ready' && state.activeJob.status !== 'completed') {
+                    state.activeJob.status = 'printing';
+                }
             }
         },
-        setLockerCode: (state, action: PayloadAction<string>) => {
-            if (state.activeJob) {
-                state.activeJob.lockerCode = action.payload;
+        setLockerCode: (state, action: PayloadAction<{ jobId: string; code: string }>) => {
+            if (state.activeJob && (state.activeJob.id == action.payload.jobId)) {
+                state.activeJob.lockerCode = action.payload.code;
             }
         },
         minimizeJob: (state) => {

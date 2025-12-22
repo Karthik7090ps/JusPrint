@@ -28,10 +28,18 @@ export const JobStatus = ({ navigation, route }: { navigation: any; route?: any 
     // Params might have data if coming from Payment or History
     const paramsJob = route?.params;
 
-    const isCurrentActiveJob = activeJob && (!paramsJob?.transactionId || activeJob.id === paramsJob.transactionId);
+    const isCurrentActiveJob = activeJob && (!paramsJob?.jobId || activeJob.id === paramsJob.jobId);
 
     // Derived state
-    const displayJob = isCurrentActiveJob ? activeJob : paramsJob; // Prefer active job for live updates
+    const displayJob = isCurrentActiveJob ? activeJob : paramsJob;
+
+    // --- UI HELPERS ---
+    const getStepIndex = (status: string) => {
+        const idx = STEPS.findIndex(s => s.key === status);
+        return idx >= 0 ? idx : (status === 'completed' ? 4 : 0);
+    };
+
+    const statusIndex = isCurrentActiveJob ? getStepIndex(activeJob!.status) : 4; // 4 = all done
 
     // If no job data at all (shouldn't happen), handle gracefully
     if (!displayJob && !paramsJob) {
@@ -43,53 +51,9 @@ export const JobStatus = ({ navigation, route }: { navigation: any; route?: any 
         );
     }
 
-    const currentStepIndex = STEPS.findIndex(s => s.key === (isCurrentActiveJob ? activeJob?.status : 'completed'));
-    // If historical, we don't really have status, assume completed or show from params?
-    // For MVP complexity reduction, if it's historical (from params and not active), assume completed or just show static data.
-    // But let's focus on the ACTIVE job simulation.
-
-    // Simulation Effect (ONLY if it is the active job)
-    useEffect(() => {
-        if (!isCurrentActiveJob || !activeJob) return;
-
-        // Auto-advance simulation
-        let timer: any;
-
-        if (activeJob.status === 'paid') {
-            timer = setTimeout(() => dispatch(updateJobStatus('queued')), 2000);
-        } else if (activeJob.status === 'queued') {
-            timer = setTimeout(() => dispatch(updateJobStatus('printing')), 2000);
-        } else if (activeJob.status === 'printing') {
-            if (activeJob.progress < 1) {
-                timer = setTimeout(() => {
-                    dispatch(updateJobProgress(Math.min(activeJob.progress + 0.1, 1)));
-                }, 500);
-            } else {
-                dispatch(updateJobStatus('ready'));
-            }
-        } else if (activeJob.status === 'ready' && !activeJob.lockerCode) {
-            dispatch(setLockerCode(Math.floor(1000 + Math.random() * 9000).toString()));
-        }
-
-        return () => clearTimeout(timer);
-    }, [activeJob, isCurrentActiveJob, dispatch]);
-
-
     const handleDone = () => {
-        // If job is ready, we can clear it from "active" floating status if user wants, 
-        // OR we keep it until they pick it up. 
-        // For now, let's keep it in Redux so the "Ready" bar stays on dashboard until they dismiss it or something.
-        // But navigating back should go to Dashboard.
         navigation.navigate('MainTabs');
     };
-
-    // Calculate step index safely
-    const getStepIndex = (status: string) => {
-        const idx = STEPS.findIndex(s => s.key === status);
-        return idx >= 0 ? idx : (status === 'completed' ? 4 : 0);
-    };
-
-    const statusIndex = isCurrentActiveJob ? getStepIndex(activeJob!.status) : 4; // 4 = all done
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -170,6 +134,7 @@ export const JobStatus = ({ navigation, route }: { navigation: any; route?: any 
                                                     color={theme.colors.primary}
                                                     style={styles.progressBar}
                                                 />
+                                                {/* WebSocket updates are handled globally by useWebSocket hook */}
                                                 <Text variant="labelSmall" style={{ color: '#888', marginTop: 4 }}>
                                                     {Math.round((activeJob?.progress || 0) * 100)}% complete
                                                 </Text>

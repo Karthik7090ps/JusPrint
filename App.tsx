@@ -7,8 +7,13 @@ import { theme } from './src/theme';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { cacheService } from './src/services/cacheService';
 
 function App(): React.JSX.Element {
+  React.useEffect(() => {
+    cacheService.init();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

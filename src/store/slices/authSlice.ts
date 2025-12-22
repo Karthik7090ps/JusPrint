@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { setSecureItem, getSecureItem, deleteSecureItem, STORAGE_KEYS } from '../../utils/secureStorage';
 import { authService } from '../../services/authService';
+import { ApiErrorType } from '../../config/api';
+import { websocketService } from '../../services/websocketService';
 
 interface AuthState {
     name: string;
@@ -48,12 +50,32 @@ export const checkStoredAuth = createAsyncThunk(
         const verifyRes = await authService.verifyToken(accessToken);
 
         if (verifyRes.success) {
+            const finalUserId = verifyRes.userId || userId;
+            // Connect WebSocket on successful auto-login
+            websocketService.connect(finalUserId);
+
             return {
-                userId: verifyRes.userId || userId,
+                userId: finalUserId,
                 name: verifyRes.name || storedName,
                 campusCode,
                 campusName,
                 isValid: true
+            };
+        }
+
+        // --- NEW: Handle Network/Timeout Errors for verifyToken ---
+        // If we can't reach the server, don't log the user out! Assume the token might still be valid.
+        if (verifyRes.errorType === ApiErrorType.NETWORK_ERROR || verifyRes.errorType === ApiErrorType.TIMEOUT_ERROR) {
+            console.log('[AUTH_SLICE] Network error during verify, keeping session alive (Offline Mode)');
+            // Try to connect anyway if we have the userId
+            if (userId) websocketService.connect(userId);
+
+            return {
+                userId,
+                name: storedName,
+                campusCode,
+                campusName,
+                isValid: true // Keep them authenticated but they are "offline"
             };
         }
 
@@ -77,11 +99,21 @@ export const checkStoredAuth = createAsyncThunk(
                         isValid: true
                     };
                 }
+            } else if (refreshRes.errorType === ApiErrorType.NETWORK_ERROR || refreshRes.errorType === ApiErrorType.TIMEOUT_ERROR) {
+                // --- NEW: Handle Network/Timeout Errors for refresh ---
+                console.log('[AUTH_SLICE] Network error during refresh, keeping existing session');
+                return {
+                    userId,
+                    name: storedName,
+                    campusCode,
+                    campusName,
+                    isValid: true
+                };
             }
         }
 
-        // 3. Everything failed, purge storage and log out
-        console.log('[AUTH_SLICE] Auth check failed completely, logging out');
+        // 3. Everything failed AND it's not a network error, purge storage and log out
+        console.log('[AUTH_SLICE] Auth check failed completely (Invalid Tokens), logging out');
         await dispatch(logoutUser());
         return { userId: null, name: null, campusCode: null, campusName: null, isValid: false };
     }
@@ -95,6 +127,9 @@ export const loginUser = createAsyncThunk(
         await setSecureItem(STORAGE_KEYS.USER_ID, credentials.userId);
         await setSecureItem(STORAGE_KEYS.ACCESS_TOKEN, credentials.accessToken);
         await setSecureItem(STORAGE_KEYS.REFRESH_TOKEN, credentials.refreshToken);
+
+        // Connect WebSocket on login
+        websocketService.connect(credentials.userId);
 
         return { userId: credentials.userId };
     }
@@ -110,6 +145,9 @@ export const logoutUser = createAsyncThunk(
         await deleteSecureItem(STORAGE_KEYS.USER_NAME);
         await deleteSecureItem(STORAGE_KEYS.CAMPUS_CODE);
         await deleteSecureItem(STORAGE_KEYS.CAMPUS_NAME);
+
+        // Disconnect WebSocket on logout
+        websocketService.disconnect();
 
         return true;
     }

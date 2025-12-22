@@ -11,30 +11,7 @@ export const PrintStatusWidget = ({ navigation }: { navigation: any }) => {
     const dispatch = useDispatch();
     const { activeJob } = useSelector((state: RootState) => state.print);
 
-    // Simulation Effect for persistent updates
-    useEffect(() => {
-        if (!activeJob) return;
-
-        let timer: any;
-
-        if (activeJob.status === 'paid') {
-            timer = setTimeout(() => dispatch(updateJobStatus('queued')), 2000);
-        } else if (activeJob.status === 'queued') {
-            timer = setTimeout(() => dispatch(updateJobStatus('printing')), 2000);
-        } else if (activeJob.status === 'printing') {
-            if (activeJob.progress < 1) {
-                timer = setTimeout(() => {
-                    dispatch(updateJobProgress(Math.min(activeJob.progress + 0.1, 1)));
-                }, 500);
-            } else {
-                dispatch(updateJobStatus('ready'));
-            }
-        } else if (activeJob.status === 'ready' && !activeJob.lockerCode) {
-            dispatch(setLockerCode(Math.floor(1000 + Math.random() * 9000).toString()));
-        }
-
-        return () => clearTimeout(timer);
-    }, [activeJob, dispatch]);
+    // WebSocket updates are handled globally by useWebSocket hook in AppNavigator
 
     if (!activeJob) return null;
 
@@ -44,17 +21,20 @@ export const PrintStatusWidget = ({ navigation }: { navigation: any }) => {
             case 'queued': return 'clock-outline';
             case 'printing': return 'printer';
             case 'ready': return 'package-variant';
+            case 'completed': return 'check-decagram';
             default: return 'printer';
         }
     };
 
     const getLabel = () => {
+        // Debug: console.log('[StatusWidget] Current Status:', activeJob.status);
         switch (activeJob.status) {
             case 'paid': return 'Payment Verified';
             case 'queued': return 'In Queue';
             case 'printing': return 'Printing...';
-            case 'ready': return 'Ready for Pickup';
-            default: return 'Processing';
+            case 'ready': return 'Ready for Pickup! 🎉';
+            case 'completed': return 'Job Completed';
+            default: return `Status: ${activeJob.status}`;
         }
     };
 

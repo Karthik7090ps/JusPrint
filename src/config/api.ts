@@ -3,8 +3,10 @@ import NetInfo from '@react-native-community/netinfo';
 // API Configuration with Network Error Handling
 export const API_CONFIG = {
     BASE_URL: __DEV__
+        // ? 'http://[2401:4900:8f4c:69b:6990:3f83:a7f1:f37c]:8000'
+        // : 'http://[2401:4900:8f4c:69b:6990:3f83:a7f1:f37c]:8000',
         ? 'http://192.168.1.8:8000'
-        : 'https://your-backend-domain.com',
+        : 'http://192.168.1.8:8000',
 
     ENDPOINTS: {
         AUTH: {
@@ -23,6 +25,10 @@ export const API_CONFIG = {
             PROCESS: '/api/payment/process',
             VERIFY: (id: string) => `/api/payment/verify/${id}`,
             HISTORY: '/api/payment/history',
+        },
+        PRINT: {
+            UPLOAD: '/api/print/upload',
+            SUBMIT: (jobId: string) => `/api/print/submit/${jobId}`,
         }
     },
 
@@ -59,14 +65,16 @@ export const getApiError = (error: any): ApiError => {
     }
 
     // Timeout errors
+    const errorMsg = String(error.message || '');
     if (error.name === 'AbortError' ||
-        error.message?.includes('timeout') ||
-        error.message?.includes('timed out')) {
+        errorMsg.includes('timeout') ||
+        errorMsg.includes('timed out') ||
+        errorMsg.toLowerCase().includes('aborted')) {
         return {
             type: ApiErrorType.TIMEOUT_ERROR,
             message: 'Request timeout',
             userMessage: '⏱️ Request timed out. Please try again.',
-            technical: error.message,
+            technical: errorMsg,
         };
     }
 

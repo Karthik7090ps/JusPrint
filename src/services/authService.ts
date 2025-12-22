@@ -135,7 +135,7 @@ export const authService = {
      * Verify if current access token is valid
      * Note: This doesn't retry to avoid login delays
      */
-    verifyToken: async (token: string): Promise<{ success: boolean; userId?: string; email?: string; name?: string }> => {
+    verifyToken: async (token: string): Promise<{ success: boolean; userId?: string; email?: string; name?: string; errorType?: ApiErrorType }> => {
         try {
             const response = await apiRequest<{
                 success: boolean;
@@ -152,7 +152,7 @@ export const authService = {
             return response;
         } catch (error: any) {
             console.log('[AUTH_SERVICE] Token verification failed:', error.message || 'Unknown error');
-            return { success: false };
+            return { success: false, errorType: error.type };
         }
     },
 
