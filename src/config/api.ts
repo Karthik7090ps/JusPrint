@@ -5,8 +5,8 @@ export const API_CONFIG = {
     BASE_URL: __DEV__
         // ? 'http://[2401:4900:8f4c:69b:6990:3f83:a7f1:f37c]:8000'
         // : 'http://[2401:4900:8f4c:69b:6990:3f83:a7f1:f37c]:8000',
-        ? 'http://192.168.1.8:8000'
-        : 'http://192.168.1.8:8000',
+        ? 'http://172.20.10.9:8000'
+        : 'http://172.20.10.9:8000',
 
     ENDPOINTS: {
         AUTH: {
@@ -161,7 +161,18 @@ export const apiRequest = async <T>(
 
         clearTimeout(timeoutId);
 
-        const data = await response.json();
+        const responseText = await response.text();
+        let data: any;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error(`[API] Failed to parse JSON. Raw response: ${responseText.substring(0, 200)}`);
+            throw {
+                status: response.status,
+                message: 'Server returned non-JSON response',
+                technical: responseText
+            };
+        }
 
         if (!response.ok) {
             throw {
