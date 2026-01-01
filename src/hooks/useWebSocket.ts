@@ -22,31 +22,37 @@ export const useWebSocket = () => {
         console.log('[useWebSocket] Initializing stable listeners...');
 
         const handleJobQueued = (data: any) => {
-            console.log('[useWebSocket] Event: Queued', data.job_id);
-            dispatch(updateJobStatus({ jobId: data.job_id, status: 'queued' }));
+            const jobId = data.job_id || data.id;
+            console.log('[useWebSocket] Event: Queued', jobId);
+            dispatch(updateJobStatus({ jobId, status: 'queued' }));
         };
 
         const handleJobPrinting = (data: any) => {
-            console.log('[useWebSocket] Event: Printing', data.job_id);
-            dispatch(updateJobStatus({ jobId: data.job_id, status: 'printing' }));
+            const jobId = data.job_id || data.id;
+            console.log('[useWebSocket] Event: Printing', jobId);
+            dispatch(updateJobStatus({ jobId, status: 'printing' }));
         };
 
         const handleJobProgress = (data: any) => {
+            const jobId = data.job_id || data.id;
+            console.log(`[useWebSocket] Progress update for ${jobId}: ${data.progress}%`);
             // Progress 0-100 -> 0-1
-            dispatch(updateJobProgress({ jobId: data.job_id, progress: data.progress / 100 }));
+            dispatch(updateJobProgress({ jobId, progress: data.progress / 100 }));
         };
 
         const handleJobReady = (data: any) => {
-            console.log('[useWebSocket] Event: Ready', data.job_id);
-            dispatch(updateJobStatus({ jobId: data.job_id, status: 'ready' }));
+            const jobId = data.job_id || data.id;
+            console.log('[useWebSocket] Event: Ready', jobId);
+            dispatch(updateJobStatus({ jobId, status: 'ready' }));
             if (data.locker_code) {
-                dispatch(setLockerCode({ jobId: data.job_id, code: data.locker_code }));
+                dispatch(setLockerCode({ jobId, code: data.locker_code }));
             }
         };
 
         const handleJobCompleted = (data: any) => {
-            console.log('[useWebSocket] Event: Completed', data.job_id);
-            dispatch(updateJobStatus({ jobId: data.job_id, status: 'completed' }));
+            const jobId = data.job_id || data.id;
+            console.log('[useWebSocket] Event: Completed', jobId);
+            dispatch(updateJobStatus({ jobId, status: 'completed' }));
         };
 
         const handleJobFailed = (data: any) => {

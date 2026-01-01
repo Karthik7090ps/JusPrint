@@ -1,9 +1,18 @@
 <resources>
-
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
-    </style>
+        <!-- Main Brand Colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/primary</item>
 
+        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+        
+        <!-- Native Splash Screen Branding -->
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_statusbar</item>
+        
+        <!-- Navigation Bar Color -->
+        <item name="android:navigationBarColor">@color/primary_dark</item>
+    </style>
 </resources>

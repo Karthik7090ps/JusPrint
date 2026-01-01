@@ -1,0 +1,9 @@
+<resources>
+    <color name="primary">#FF6B35</color>
+    <color name="primary_dark">#E55A28</color>
+    <color name="background">#FAFAFA</color>
+    
+    <!-- Splash Screen specific aliases -->
+    <color name="splash_background">#FF6B35</color>
+    <color name="splash_statusbar">#E55A28</color>
+</resources>

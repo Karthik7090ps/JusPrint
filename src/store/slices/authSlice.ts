@@ -33,7 +33,7 @@ export const checkStoredAuth = createAsyncThunk(
     'auth/checkStoredAuth',
     async (_, { dispatch }) => {
         // Add a slight delay for splash screen visibility to complete its animation
-        await new Promise(resolve => setTimeout(() => resolve(null), 6200));
+        await new Promise(resolve => setTimeout(() => resolve(null), 5000));
 
         const userId = await getSecureItem(STORAGE_KEYS.USER_ID);
         const accessToken = await getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
