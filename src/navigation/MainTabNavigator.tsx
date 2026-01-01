@@ -6,95 +6,130 @@ import { ServicesHub } from '../screens/services/ServicesHub';
 import { MarketplaceHome } from '../screens/marketplace/MarketplaceHome';
 import { CommunityHub } from '../screens/community/CommunityHub';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { CustomTabBarButton } from '../components/common/CustomTabBarButton';
-import { View, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { colors } from '../theme/colors';
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useEffect } from 'react';
 
 const Tab = createBottomTabNavigator();
 
+// Simple animated icon component
+const TabIcon = ({ name, color, focused }: { name: string; color: string; focused: boolean }) => {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withSpring(focused ? 1.1 : 1, {
+      damping: 15,
+      stiffness: 200,
+    });
+  }, [focused]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Icon name={name} size={24} color={color} />
+    </Animated.View>
+  );
+};
+
 export const MainTabNavigator = () => {
-    const theme = useTheme();
-    const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Platform.OS === 'android' ? Math.max(insets.bottom, 8) : insets.bottom;
 
-    // Calculate proper bottom padding for navigation bar
-    const bottomPadding = Platform.OS === 'android' ? Math.max(insets.bottom, 8) : insets.bottom;
+  return (
+    <Tab.Navigator
+      initialRouteName="Print"
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          height: 55 + bottomPadding,
+          paddingBottom: bottomPadding,
+          paddingTop: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 8,
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 4,
+          marginBottom: 2,
+        },
+        tabBarItemStyle: {
+          paddingTop: 4,
+        },
+        tabBarHideOnKeyboard: true,
+      }}
+    >
+      <Tab.Screen
+        name="Print"
+        component={PrintDashboard}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="printer" color={color} focused={focused} />
+          ),
+          tabBarLabel: 'Print',
+        }}
+      />
 
-    return (
-        <Tab.Navigator
-            initialRouteName="Print"
-            screenOptions={{
-                headerShown: false,
-                tabBarStyle: {
-                    backgroundColor: '#FFFFFF',
-                    borderTopWidth: 1,
-                    borderTopColor: '#F0F0F0',
-                    elevation: 8,
-                    height: 60 + bottomPadding,
-                    paddingBottom: bottomPadding,
-                    paddingTop: 6,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: -2 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 4,
-                },
-                tabBarActiveTintColor: '#1A1A2E',
-                tabBarInactiveTintColor: '#9CA3AF',
-                tabBarLabelStyle: { fontWeight: '600', fontSize: 10, marginBottom: 2 },
-                tabBarItemStyle: { paddingTop: 4 },
-            }}
-        >
+      <Tab.Screen
+        name="Projects"
+        component={ProjectsDashboard}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="briefcase" color={color} focused={focused} />
+          ),
+          tabBarLabel: 'Projects',
+        }}
+      />
 
-            <Tab.Screen
-                name="Projects"
-                component={ProjectsDashboard}
-                options={{
-                    tabBarIcon: ({ color, size }) => <Icon name="rocket-launch" size={size} color={color} />,
-                    tabBarLabel: 'Projects'
-                }}
-            />
-            <Tab.Screen
-                name="Services"
-                component={ServicesHub}
-                options={{
-                    tabBarIcon: ({ color, size }) => <Icon name="cogs" size={size} color={color} />,
-                    tabBarLabel: 'Services'
-                }}
-            />
+      <Tab.Screen
+        name="Market"
+        component={MarketplaceHome}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="shopping" color={color} focused={focused} />
+          ),
+          tabBarLabel: 'Market',
+        }}
+      />
 
-            {/* Center Print Action */}
-            <Tab.Screen
-                name="Print"
-                component={PrintDashboard}
-                options={{
-                    tabBarIcon: ({ focused }) => (
-                        <View style={{ alignItems: 'center', justifyContent: 'center', top: 0 }}>
-                            <Icon name="printer" size={28} color="white" />
-                        </View>
-                    ),
-                    tabBarButton: (props) => <CustomTabBarButton {...props} />,
-                    tabBarLabel: () => null,
-                }}
-            />
+      <Tab.Screen
+        name="Services"
+        component={ServicesHub}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="tools" color={color} focused={focused} />
+          ),
+          tabBarLabel: 'Services',
+        }}
+      />
 
-            <Tab.Screen
-                name="Market"
-                component={MarketplaceHome}
-                options={{
-                    tabBarIcon: ({ color, size }) => <Icon name="storefront" size={size} color={color} />,
-                    tabBarLabel: 'Market'
-                }}
-            />
-            <Tab.Screen
-                name="Community"
-                component={CommunityHub}
-                options={{
-                    tabBarIcon: ({ color, size }) => <Icon name="account-group" size={size} color={color} />,
-                    tabBarLabel: 'Community'
-                }}
-            />
-
-        </Tab.Navigator >
-    );
+      <Tab.Screen
+        name="Community"
+        component={CommunityHub}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="account-group" color={color} focused={focused} />
+          ),
+          tabBarLabel: 'Community',
+        }}
+      />
+    </Tab.Navigator>
+  );
 };
