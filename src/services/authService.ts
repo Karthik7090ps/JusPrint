@@ -171,4 +171,22 @@ export const authService = {
             return { success: false, campuses: [] };
         }
     },
+
+    /**
+     * Logout the current user
+     */
+    logout: async (token: string): Promise<{ success: boolean }> => {
+        try {
+            await apiRequest(
+                API_CONFIG.ENDPOINTS.AUTH.LOGOUT,
+                'POST',
+                undefined,
+                token
+            );
+            return { success: true };
+        } catch (error) {
+            console.error('[AUTH_SERVICE] Logout failed:', error);
+            return { success: false };
+        }
+    }
 };

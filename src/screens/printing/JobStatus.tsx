@@ -52,6 +52,9 @@ export const JobStatus = ({ navigation, route }: { navigation: any; route?: any 
     }
 
     const handleDone = () => {
+        if (statusIndex >= 3) {
+            dispatch(clearJob());
+        }
         navigation.navigate('MainTabs');
     };
 

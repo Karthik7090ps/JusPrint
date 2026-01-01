@@ -14,10 +14,12 @@ export const API_CONFIG = {
             VERIFY_OTP: '/api/auth/verify-otp',
             REFRESH_TOKEN: '/api/auth/refresh',
             VERIFY_TOKEN: '/api/auth/verify-token',
+            LOGOUT: '/api/auth/logout',
         },
         PRINTERS: {
             CAMPUSES: '/api/printers/campuses',
-            CAMPUS_PRINTERS: (code: string) => `/api/printers/campus/${code}/printers`,
+            LIST: '/api/printers/list',
+            CAMPUS_PRINTERS: (id: string) => `/api/printers/campus/${id}/printers`,
             PRINTER_DETAILS: (id: string) => `/api/printers/${id}`,
         },
         PAYMENT: {
@@ -25,10 +27,14 @@ export const API_CONFIG = {
             PROCESS: '/api/payment/process',
             VERIFY: (id: string) => `/api/payment/verify/${id}`,
             HISTORY: '/api/payment/history',
+            REFUND: '/api/payment/refund',
         },
         PRINT: {
             UPLOAD: '/api/print/upload',
             SUBMIT: (jobId: string) => `/api/print/submit/${jobId}`,
+            HISTORY: '/api/print/jobs',
+            JOB_DETAILS: (id: string) => `/api/print/job/${id}`,
+            STATS: '/api/print/stats', // Recommendation: Add this for dashboard
         }
     },
 

@@ -108,18 +108,18 @@ export const printerService = {
                 uploadUrl,
                 {
                     'Authorization': authToken,
-                    'authorization': authToken,
+                    'authorization': authToken, // Redundancy for backends that might be case-sensitive
                     'Content-Type': 'multipart/form-data',
                 },
                 [
                     { name: 'printer_id', data: printerId },
-                    { name: 'authorization', data: authToken }, // Form field
                     { name: 'copies', data: String(settings.copies || 1) },
                     { name: 'color_mode', data: settings.colorMode || 'bw' },
                     { name: 'sides', data: settings.sides || 'single' },
                     { name: 'orientation', data: settings.orientation || 'portrait' },
                     { name: 'page_size', data: settings.pageSize || 'A4' },
-                    { name: 'total_pages', data: String(settings.totalPages || 0) },
+                    // Backend schema uses 'page_range' (string) 
+                    { name: 'page_range', data: settings.pageRange || `1-${settings.totalPages || 1}` },
                     {
                         name: 'file',
                         filename: fileName || 'document.pdf',
@@ -192,6 +192,42 @@ export const printerService = {
         } catch (error: any) {
             console.error('[PRINTER_SERVICE] Job submission failed:', error);
             return { success: false, error: error.message || 'Failed to submit print job' };
+        }
+    },
+
+    /**
+     * Get print job history
+     */
+    getPrintHistory: async (limit: number = 10, skip: number = 0, token?: string): Promise<{ success: boolean; jobs: any[]; total_count: number }> => {
+        try {
+            const response = await apiRequest<{ success: boolean; jobs: any[]; total_count: number }>(
+                `${API_CONFIG.ENDPOINTS.PRINT.HISTORY}?limit=${limit}&skip=${skip}`,
+                'GET',
+                undefined,
+                token
+            );
+            return response;
+        } catch (error: any) {
+            console.error('[PRINTER_SERVICE] Failed to fetch print history:', error);
+            return { success: false, jobs: [], total_count: 0 };
+        }
+    },
+
+    /**
+     * Get print stats (pages today, this week, etc.)
+     */
+    getPrintStats: async (token?: string): Promise<{ success: boolean; stats: any }> => {
+        try {
+            const response = await apiRequest<{ success: boolean; stats: any }>(
+                API_CONFIG.ENDPOINTS.PRINT.STATS,
+                'GET',
+                undefined,
+                token
+            );
+            return response;
+        } catch (error: any) {
+            console.error('[PRINTER_SERVICE] Failed to fetch print stats:', error);
+            return { success: false, stats: null };
         }
     }
 };

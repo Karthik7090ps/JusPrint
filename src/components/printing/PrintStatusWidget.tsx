@@ -4,7 +4,7 @@ import { Text, ProgressBar, useTheme, IconButton } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store'; // Adjust import path
-import { maximizeJob, updateJobStatus, updateJobProgress, setLockerCode } from '../../store/slices/printSlice'; // Adjust import path
+import { maximizeJob, updateJobStatus, updateJobProgress, setLockerCode, clearJob } from '../../store/slices/printSlice'; // Adjust import path
 
 export const PrintStatusWidget = ({ navigation }: { navigation: any }) => {
     const theme = useTheme();
@@ -66,7 +66,20 @@ export const PrintStatusWidget = ({ navigation }: { navigation: any }) => {
                     {activeJob.status === 'printing' && (
                         <Text style={styles.percentage}>{Math.round(activeJob.progress * 100)}%</Text>
                     )}
-                    <Icon name="chevron-up" size={24} color="white" />
+                    
+                    {(activeJob.status === 'ready' || activeJob.status === 'completed') ? (
+                        <TouchableOpacity 
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                dispatch(clearJob());
+                            }}
+                            style={styles.closeBtn}
+                        >
+                            <Icon name="close" size={20} color="white" />
+                        </TouchableOpacity>
+                    ) : (
+                        <Icon name="chevron-up" size={24} color="white" />
+                    )}
                 </View>
             </View>
 
@@ -134,5 +147,11 @@ const styles = StyleSheet.create({
     progressBar: {
         height: 3,
         backgroundColor: 'rgba(255,255,255,0.3)',
+    },
+    closeBtn: {
+        padding: 4,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 12,
+        marginLeft: 8,
     },
 });
