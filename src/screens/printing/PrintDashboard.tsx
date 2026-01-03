@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Dimensions, RefreshControl } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, Snackbar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { colors } from '../../theme/colors';
 import { AppHeader } from '../../components/common/AppHeader';
 import { PrintStatusWidget } from '../../components/printing/PrintStatusWidget';
 import { printerService } from '../../services/printerService';
+import { cacheService } from '../../services/cacheService';
 import { getSecureItem, STORAGE_KEYS } from '../../utils/secureStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -23,9 +24,13 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
   const [recentPrints, setRecentPrints] = useState<any[]>([]);
   const [stats, setStats] = useState({ today: 0, week: 0, monthlyAmount: 0 });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [cachedFilesMap, setCachedFilesMap] = useState<Map<string, any>>(new Map());
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
+    loadCachedFiles();
   }, []);
 
   useEffect(() => {
@@ -33,6 +38,20 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
       setSelectedPrinter(route.params.selectedPrinter);
     }
   }, [route.params?.selectedPrinter]);
+
+  const loadCachedFiles = async () => {
+    try {
+      const cached = await cacheService.getCachedFiles();
+      const fileMap = new Map();
+      cached.forEach(file => {
+        fileMap.set(file.originalName, file);
+      });
+      setCachedFilesMap(fileMap);
+      console.log('[Dashboard] Loaded', cached.length, 'cached files');
+    } catch (e) {
+      console.log('[Dashboard] Failed to load cached files:', e);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -58,7 +77,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
         if (historyRes.success) {
           console.log('[Dashboard] Raw History:', JSON.stringify(historyRes.jobs, null, 2));
           
-          const mappedJobs = (historyRes.jobs || []).map((job: any) => {
+          const mappedJobs = await Promise.all((historyRes.jobs || []).map(async (job: any) => {
             // Smart page count detection with nested checks
             let pageCount = 
               job.total_pages || 
@@ -89,6 +108,28 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
               } catch (e) { /* ignore parse error */ }
             }
 
+            // If STILL 0, try to estimate from price (assuming ₹2/page for B&W)
+            if (!pageCount && job.total_price) {
+              const estimatedPages = Math.round(job.total_price / 2);
+              if (estimatedPages > 0 && estimatedPages < 1000) {
+                pageCount = estimatedPages;
+                console.log(`[Dashboard] Estimated ${pageCount} pages from price ₹${job.total_price}`);
+              }
+            }
+
+            // Try to get detailed job info if we have an ID
+            if (!pageCount && (job.id || job.job_id)) {
+              try {
+                const detailsRes = await printerService.getPrintHistory(1, 0, token || undefined);
+                if (detailsRes.success && detailsRes.jobs?.[0]) {
+                  const details = detailsRes.jobs[0];
+                  pageCount = details.total_pages || details.pages || pageCount;
+                }
+              } catch (e) {
+                // Ignore error, continue with what we have
+              }
+            }
+
             return {
               ...job,
               id: job.id || job.job_id,
@@ -96,7 +137,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
               pages: pageCount || 0,
               date: job.created_at || job.date || 'Recent'
             };
-          });
+          }));
           setRecentPrints(mappedJobs);
         }
       } catch (e) {
@@ -122,9 +163,133 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadDashboardData();
+    await Promise.all([loadDashboardData(), loadCachedFiles()]);
     setIsRefreshing(false);
   };
+
+  const handleReprint = (item: any) => {
+    // Check if file is in cache
+    const cachedFile = cachedFilesMap.get(item.name);
+    
+    if (cachedFile) {
+      console.log('[Dashboard] Found cached file for reprint:', item.name);
+      navigation.navigate('DocumentUpload', {
+        document: {
+          uri: `file://${cachedFile.localPath}`,
+          name: cachedFile.originalName,
+          type: cachedFile.mimeType,
+          size: cachedFile.size,
+          pages: cachedFile.totalPages || item.pages || 0,
+          isCached: true
+        },
+        reprint: true
+      });
+    } else {
+      console.log('[Dashboard] No cached file found for:', item.name);
+      setErrorMsg(`File not found in cache. Please upload the document again.`);
+    }
+  };
+
+  // Dynamic Tips System
+  const getDynamicTips = () => {
+    const tips = [
+      {
+        id: 'duplex',
+        icon: 'book-open-page-variant',
+        color: colors.accent,
+        bgColor: '#FFF9E6',
+        borderColor: '#FFE082',
+        title: 'Save with Duplex Printing',
+        subtitle: 'Print both sides • Get 20% off',
+        show: true
+      },
+      {
+        id: 'bulk',
+        icon: 'file-multiple',
+        color: '#2196F3',
+        bgColor: '#E3F2FD',
+        borderColor: '#90CAF9',
+        title: 'Printing Multiple Pages?',
+        subtitle: 'Combine pages • Use 4-per-sheet layout',
+        show: stats.today > 0 // Show if user has printed today
+      },
+      {
+        id: 'time',
+        icon: 'clock-fast',
+        color: '#4CAF50',
+        bgColor: '#E8F5E9',
+        borderColor: '#A5D6A7',
+        title: 'Off-Peak Hours = Faster Print',
+        subtitle: 'Print early morning • Skip the queue',
+        show: new Date().getHours() >= 10 && new Date().getHours() <= 16 // During peak hours
+      },
+      {
+        id: 'preview',
+        icon: 'eye-outline',
+        color: '#9C27B0',
+        bgColor: '#F3E5F5',
+        borderColor: '#CE93D8',
+        title: 'Always Preview First',
+        subtitle: 'Check page count • Save paper & money',
+        show: true
+      },
+      {
+        id: 'cache',
+        icon: 'refresh-circle',
+        color: '#FF5722',
+        bgColor: '#FBE9E7',
+        borderColor: '#FFAB91',
+        title: 'Quick Reprint Available',
+        subtitle: `${cachedFilesMap.size} docs cached • Instant reprint`,
+        show: cachedFilesMap.size > 0
+      },
+      {
+        id: 'stats',
+        icon: 'chart-line',
+        color: '#00BCD4',
+        bgColor: '#E0F7FA',
+        borderColor: '#80DEEA',
+        title: `You've Printed ${stats.today} Today!`,
+        subtitle: `${stats.week} this week • Keep it eco-friendly`,
+        show: stats.today > 0
+      },
+      {
+        id: 'quality',
+        icon: 'quality-high',
+        color: '#673AB7',
+        bgColor: '#EDE7F6',
+        borderColor: '#B39DDB',
+        title: 'Use Draft Mode for Notes',
+        subtitle: 'Faster printing • Lower cost',
+        show: stats.monthlyAmount > 100 // Show to frequent users
+      },
+      {
+        id: 'schedule',
+        icon: 'calendar-clock',
+        color: '#009688',
+        bgColor: '#E0F2F1',
+        borderColor: '#80CBC4',
+        title: 'Schedule Prints in Advance',
+        subtitle: 'Upload now • Pick up later',
+        show: recentPrints.length === 0 // Show to new users
+      }
+    ];
+
+    return tips.filter(tip => tip.show);
+  };
+
+  const activeTips = getDynamicTips();
+  const currentTip = activeTips[currentTipIndex % activeTips.length];
+
+  // Auto-rotate tips every 5 seconds
+  useEffect(() => {
+    if (activeTips.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentTipIndex(prev => (prev + 1) % activeTips.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [activeTips.length]);
 
   return (
     <View style={styles.container}>
@@ -216,21 +381,51 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
           </View>
         </View>
 
-        {/* Pro Tip */}
-        <View style={styles.tipSection}>
-          <View style={styles.tipCard}>
-            <View style={styles.tipLeft}>
-              <View style={styles.tipIconBox}>
-                <Icon name="lightbulb-on-outline" size={24} color={colors.accent} />
+        {/* Dynamic Pro Tip */}
+        {currentTip && (
+          <View style={styles.tipSection}>
+            <TouchableOpacity 
+              style={[styles.tipCard, { 
+                backgroundColor: currentTip.bgColor,
+                borderColor: currentTip.borderColor 
+              }]}
+              activeOpacity={0.9}
+              onPress={() => {
+                // Cycle to next tip on tap
+                setCurrentTipIndex(prev => (prev + 1) % activeTips.length);
+              }}
+            >
+              <View style={styles.tipLeft}>
+                <View style={[styles.tipIconBox, { backgroundColor: 'white' }]}>
+                  <Icon name={currentTip.icon} size={24} color={currentTip.color} />
+                </View>
+                <View style={styles.tipTextBox}>
+                  <Text style={styles.tipTitle}>{currentTip.title}</Text>
+                  <Text style={styles.tipSubtitle}>{currentTip.subtitle}</Text>
+                </View>
               </View>
-              <View style={styles.tipTextBox}>
-                <Text style={styles.tipTitle}>Save with Duplex Printing</Text>
-                <Text style={styles.tipSubtitle}>Print both sides • Get 20% off</Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} color={colors.textTertiary} />
+              
+              {activeTips.length > 1 && (
+                <View style={styles.tipIndicators}>
+                  {activeTips.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.tipDot,
+                        {
+                          backgroundColor: index === currentTipIndex % activeTips.length 
+                            ? currentTip.color 
+                            : colors.textTertiary,
+                          width: index === currentTipIndex % activeTips.length ? 20 : 6,
+                        }
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
-        </View>
+        )}
 
         {/* Recent Activity */}
         <View style={styles.recentSection}>
@@ -256,7 +451,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
                     styles.recentCard,
                     index === recentPrints.length - 1 && styles.recentCardLast
                   ]}
-                  onPress={() => navigation.navigate('DocumentUpload', { document: item })}
+                  onPress={() => handleReprint(item)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.recentCardLeft}>
@@ -285,7 +480,7 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
                     style={styles.reprintButton}
                     onPress={(e) => {
                       e.stopPropagation();
-                      navigation.navigate('DocumentUpload', { document: item, reprint: true });
+                      handleReprint(item);
                     }}
                   >
                     <Icon name="refresh" size={18} color={colors.primary} />
@@ -311,6 +506,15 @@ export const PrintDashboard = ({ navigation, route }: { navigation: any; route: 
       </ScrollView>
 
       {activeJob && <PrintStatusWidget navigation={navigation} />}
+
+      <Snackbar
+        visible={!!errorMsg}
+        onDismiss={() => setErrorMsg(null)}
+        duration={4000}
+        action={{ label: 'Dismiss', onPress: () => setErrorMsg(null) }}
+      >
+        {errorMsg}
+      </Snackbar>
     </View>
   );
 };
@@ -510,6 +714,16 @@ const styles = StyleSheet.create({
   tipSubtitle: {
     fontSize: 12,
     color: colors.textSecondary,
+  },
+  tipIndicators: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+    marginLeft: 8,
+  },
+  tipDot: {
+    height: 6,
+    borderRadius: 3,
   },
 
   // Recent Activity

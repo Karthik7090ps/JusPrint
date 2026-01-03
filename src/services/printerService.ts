@@ -103,30 +103,35 @@ export const printerService = {
             const authToken = token ? `Bearer ${token}` : '';
             const uploadUrl = `${url}${token ? `?authorization=${encodeURIComponent(authToken)}` : ''}`;
 
+            // Build the multipart form data array
+            // For text fields, ReactNativeBlobUtil expects plain string values
+            const formData: any[] = [
+                { name: 'file', filename: fileName || 'document.pdf', type: fileType || 'application/pdf', data: ReactNativeBlobUtil.wrap(cleanPath) },
+            ];
+
+            // Add printer_id and settings as query parameters instead to avoid multipart issues
+            const queryParams = new URLSearchParams({
+                printer_id: printerId,
+                copies: String(settings.copies || 1),
+                color_mode: settings.colorMode || 'bw',
+                sides: settings.sides || 'single',
+                orientation: settings.orientation || 'portrait',
+                page_size: settings.pageSize || 'A4',
+                page_range: settings.pageRange || `1-${settings.totalPages || 1}`,
+                total_pages: String(settings.totalPages || 0),
+            });
+
+            const finalUrl = `${uploadUrl}${uploadUrl.includes('?') ? '&' : '?'}${queryParams.toString()}`;
+
             const response = await ReactNativeBlobUtil.fetch(
                 'POST',
-                uploadUrl,
+                finalUrl,
                 {
                     'Authorization': authToken,
-                    'authorization': authToken, // Redundancy for backends that might be case-sensitive
+                    'authorization': authToken,
                     'Content-Type': 'multipart/form-data',
                 },
-                [
-                    { name: 'printer_id', data: printerId },
-                    { name: 'copies', data: String(settings.copies || 1) },
-                    { name: 'color_mode', data: settings.colorMode || 'bw' },
-                    { name: 'sides', data: settings.sides || 'single' },
-                    { name: 'orientation', data: settings.orientation || 'portrait' },
-                    { name: 'page_size', data: settings.pageSize || 'A4' },
-                    // Backend schema uses 'page_range' (string) 
-                    { name: 'page_range', data: settings.pageRange || `1-${settings.totalPages || 1}` },
-                    {
-                        name: 'file',
-                        filename: fileName || 'document.pdf',
-                        type: fileType || 'application/pdf',
-                        data: ReactNativeBlobUtil.wrap(cleanPath),
-                    },
-                ]
+                formData
             );
 
             const status = response.respInfo.status;

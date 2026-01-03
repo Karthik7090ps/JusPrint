@@ -233,7 +233,7 @@ export const PaymentScreen = ({ navigation, route }: PaymentScreenProps) => {
 
             // Cache the file locally for future offline reprints
             try {
-                await cacheService.cacheFile(document.uri, document.name, document.type);
+                await cacheService.cacheFile(document.uri, document.name, document.type, settings.totalPages);
             } catch (cacheErr) {
                 console.warn('[Payment] Cache failed (non-critical):', cacheErr);
             }

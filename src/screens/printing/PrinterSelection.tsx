@@ -43,7 +43,12 @@ export const PrinterSelection = ({ navigation, route }: { navigation: any, route
                 params: { selectedPrinter: item }
             });
         } else if (returnRoute) {
-            navigation.navigate(returnRoute, { selectedPrinter: item });
+            // Pass back document and settings if they were provided
+            navigation.navigate(returnRoute, { 
+                selectedPrinter: item,
+                document: route.params?.document,
+                presetSettings: route.params?.presetSettings
+            });
         } else {
             // Default flow: If no return route, go to Document Upload with this printer
             navigation.navigate('DocumentUpload', { selectedPrinter: item });

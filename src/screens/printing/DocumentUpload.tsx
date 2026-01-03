@@ -226,10 +226,10 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
             name: cached.originalName,
             type: cached.mimeType,
             size: cached.size,
-            pages: 0,
+            pages: cached.totalPages || 0,
             isCached: true
         });
-        updateSetting('totalPages', 0);
+        updateSetting('totalPages', cached.totalPages || 0);
 
         if (docType === 'image') {
             updateSetting('totalPages', 1);
@@ -240,6 +240,10 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
     const handleProceed = () => {
         if (!document) {
             setErrorMsg('Please select a document first');
+            return;
+        }
+        if (!selectedPrinter || !selectedPrinter.id) {
+            setErrorMsg('Please select a printer first');
             return;
         }
         if (isDetectingPages) {
@@ -257,8 +261,8 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
             document,
             settings,
             pricing, // Pass the already calculated pricing object
-            printerId: selectedPrinter?.id,
-            printerName: selectedPrinter?.name || selectedPrinter?.location
+            printerId: selectedPrinter.id,
+            printerName: selectedPrinter.name || selectedPrinter.location
         });
     };
 
@@ -269,7 +273,11 @@ export const DocumentUpload = ({ navigation, route }: { navigation: any; route?:
             {/* Printer Selection Bar */}
             <TouchableOpacity
                 style={styles.printerBar}
-                onPress={() => navigation.navigate('PrinterSelection', { returnRoute: 'DocumentUpload' })}
+                onPress={() => navigation.navigate('PrinterSelection', { 
+                    returnRoute: 'DocumentUpload',
+                    document,
+                    presetSettings: settings
+                })}
             >
                 <View style={styles.printerInfo}>
                     <View style={[styles.printerIcon, { backgroundColor: theme.colors.primary + '15' }]}>

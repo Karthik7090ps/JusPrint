@@ -31,7 +31,7 @@ export const API_CONFIG = {
         },
         PRINT: {
             UPLOAD: '/api/print/upload',
-            SUBMIT: (jobId: string) => `/api/print/submit/${jobId}`,
+            SUBMIT: (jobId: string) => `/api/print/job/${jobId}/submit`,
             HISTORY: '/api/print/jobs',
             JOB_DETAILS: (id: string) => `/api/print/job/${id}`,
             STATS: '/api/print/stats', // Recommendation: Add this for dashboard
